@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ADSW Content Engine — Demo v3</title>
+<style>
+  :root{
+    --teal:#0095A1; --cerulean:#00B6DD; --charcoal:#444F5D;
+    --bg:#F6F8F9; --card:#FFFFFF; --line:#E3E8EA; --text:#1D2429; --muted:#6B7680;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);}
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:linear-gradient(90deg,var(--charcoal),#2E363F);color:#fff;flex-wrap:wrap;gap:10px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand .mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--cerulean));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;}
+  .brand .titles{line-height:1.2;}
+  .brand .titles .top{font-size:11px;letter-spacing:.12em;color:var(--cerulean);font-weight:700;}
+  .brand .titles .bottom{font-size:16px;font-weight:600;}
+  .status{display:flex;align-items:center;gap:8px;font-size:13px;color:#dfe6e8;}
+  .dot{width:8px;height:8px;border-radius:50%;background:#ff5b5b;animation:pulse 1.4s infinite;}
+  @keyframes pulse{0%{opacity:1;}50%{opacity:.35;}100%{opacity:1;}}
+  nav{display:flex;gap:4px;padding:0 24px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;}
+  nav button{border:none;background:none;padding:13px 16px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
+  nav button.active{color:var(--teal);border-bottom-color:var(--teal);}
+  .view{display:none;padding:16px 24px 40px;}
+  .view.active{display:block;}
+  .session-bar{padding:10px 24px;background:#fff;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;gap:24px;flex-wrap:wrap;}
+  .session-bar b{color:var(--text);}
+  .layout{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
+  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;max-height:74vh;}
+  .panel h2{margin:0;padding:14px 18px;font-size:14px;letter-spacing:.03em;color:var(--charcoal);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .panel h2 .count{background:var(--teal);color:#fff;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;}
+  .panel h2 select{font-size:11.5px;border:1px solid var(--line);border-radius:6px;padding:3px 6px;color:var(--charcoal);}
+  .scroll{overflow-y:auto;padding:10px 16px;flex:1;}
+  .line{display:flex;gap:8px;padding:8px 4px;border-bottom:1px dashed var(--line);font-size:14px;line-height:1.5;animation:fadeIn .4s ease;cursor:pointer;}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+  .line:hover{background:#F7FBFB;}
+  .line.selected{background:rgba(0,182,221,.10);}
+  .line input{margin-top:4px;}
+  .line .ts{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px;min-width:46px;padding-top:2px;}
+  .line .spk{color:var(--teal);font-weight:700;min-width:150px;font-size:13px;padding-top:1px;}
+  .line .txt{flex:1;}
+  .line.hot .txt{background:linear-gradient(180deg,transparent 60%, rgba(0,182,221,.18) 60%);font-weight:600;}
+  mark{background:rgba(217,140,43,.28);color:#7a4f0f;padding:0 2px;border-radius:3px;font-weight:700;}
+  .selbar{position:sticky;bottom:0;background:var(--charcoal);color:#fff;padding:10px 14px;border-radius:10px;display:none;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:8px;}
+  .selbar.show{display:flex;}
+  .selbar select, .selbar button{font-size:12.5px;padding:6px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;}
+  .selbar button.primary{background:var(--teal);border-color:var(--teal);font-weight:700;}
+  .card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fbfdfd;animation:fadeIn .4s ease;}
+  .card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;flex-wrap:wrap;}
+  .tag{font-size:10px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:999px;text-transform:uppercase;}
+  .tag.type-soundbite{background:rgba(0,149,161,.12);color:var(--teal);}
+  .tag.type-infographic{background:rgba(217,140,43,.14);color:#a86414;}
+  .tag.type-explainer{background:rgba(123,97,214,.14);color:#6a4fc7;}
+  .tag.type-bank{background:rgba(107,118,128,.14);color:var(--muted);}
+  .priority-badge{font-size:10px;font-weight:700;color:#b34747;background:rgba(179,71,71,.1);padding:2px 8px;border-radius:999px;}
+  .score{font-size:12px;color:var(--muted);font-weight:600;margin-left:auto;}
+  .score b{color:var(--charcoal);}
+  .quote{font-size:14.5px;line-height:1.45;margin:6px 0 8px;color:var(--text);}
+  .meta{font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .meta a{color:var(--cerulean);text-decoration:none;font-weight:600;}
+  .meta a:hover{text-decoration:underline;}
+  .watch-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+  .wchip{font-size:10.5px;padding:2px 7px;border-radius:999px;border:1px solid;font-weight:600;}
+  .wchip.brand{color:var(--teal);border-color:var(--teal);background:rgba(0,149,161,.06);}
+  .wchip.person{color:#0a7f97;border-color:var(--cerulean);background:rgba(0,182,221,.06);}
+  .wchip.topic{color:#9c7b2f;border-color:#c9a24a;background:rgba(201,162,74,.08);}
+  .type-select{font-size:11.5px;padding:3px 6px;border-radius:6px;border:1px solid var(--line);color:var(--charcoal);font-weight:600;}
+  .type-hint{font-size:10.5px;color:var(--muted);font-style:italic;}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .actions button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 10px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--charcoal);}
+  .actions .approve{border-color:var(--teal);color:var(--teal);}
+  .actions .approve:hover{background:var(--teal);color:#fff;}
+  .actions .reject{color:#b34747;border-color:#eec9c9;}
+  .actions .reject:hover{background:#b34747;color:#fff;border-color:#b34747;}
+  .card.approved{border-color:var(--teal);background:rgba(0,149,161,.05);}
+  .status-label{color:var(--teal);font-weight:700;font-size:12px;}
+  .board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;overflow-x:auto;}
+  @media(max-width:1100px){.board{grid-template-columns:repeat(5,220px);}}
+  .col{background:var(--card);border:1px solid var(--line);border-radius:12px;min-height:60vh;display:flex;flex-direction:column;}
+  .col h3{margin:0;padding:12px 14px;font-size:12.5px;letter-spacing:.03em;color:var(--charcoal);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;}
+  .col .items{padding:10px;flex:1;}
+  .pitem{background:#fbfdfd;border:1px solid var(--line);border-radius:9px;padding:9px 10px;margin-bottom:8px;font-size:12.5px;}
+  .pitem .ttl{font-weight:600;margin-bottom:4px;}
+  .pitem .ftr{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+  .pitem button{font-size:11px;border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 7px;cursor:pointer;color:var(--teal);font-weight:700;}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
+  th,td{padding:10px 12px;text-align:left;font-size:13px;border-bottom:1px solid var(--line);}
+  th{background:#F0F4F5;color:var(--charcoal);font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;}
+  .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--cerulean));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-right:8px;vertical-align:middle;}
+  .switch{position:relative;display:inline-block;width:38px;height:20px;}
+  .switch input{opacity:0;width:0;height:0;}
+  .slider{position:absolute;cursor:pointer;inset:0;background:#ccd3d6;border-radius:999px;transition:.2s;}
+  .slider:before{content:"";position:absolute;height:15px;width:15px;left:2.5px;top:2.5px;background:#fff;border-radius:50%;transition:.2s;}
+  input:checked + .slider{background:var(--teal);}
+  input:checked + .slider:before{transform:translateX(18px);}
+  .addbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .addbar input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;flex:1;min-width:160px;}
+  .addbar button{padding:8px 14px;border-radius:8px;border:none;background:var(--teal);color:#fff;font-weight:600;font-size:13px;cursor:pointer;}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+  .chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;display:flex;align-items:center;gap:8px;}
+  .chip.brand{border-color:var(--teal);color:var(--teal);}
+  .chip.person{border-color:var(--cerulean);color:#0a7f97;}
+  .chip.topic{border-color:#c9a24a;color:#9c7b2f;}
+  .chip button{border:none;background:none;color:inherit;cursor:pointer;font-size:14px;line-height:1;opacity:.6;}
+  .chip button:hover{opacity:1;}
+  .section-lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 8px;}
+  .footer-note{padding:14px 0 10px;font-size:12px;color:var(--muted);max-width:900px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="mark">M</div>
+    <div class="titles">
+      <div class="top">PROJECT ADSW · MASDAR</div>
+      <div class="bottom">Content Intelligence & Soundbite Engine</div>
+    </div>
+  </div>
+  <div class="status"><span class="dot"></span> DEMO — sample data, not a live feed</div>
+</header>
+
+<nav>
+  <button class="tab-btn active" data-tab="live">Live Session</button>
+  <button class="tab-btn" data-tab="pipeline">Production Pipeline</button>
+  <button class="tab-btn" data-tab="roster">Speaker Roster</button>
+  <button class="tab-btn" data-tab="watchlist">Watchlist</button>
+</nav>
+
+<div class="session-bar">
+  <div>Session: <b>Sample Keynote — Energy Transition</b></div>
+  <div>Source: <b>Sample transcript (mock data)</b></div>
+  <div>Language: <b>English</b></div>
+</div>
+
+<div class="view active" id="view-live">
+  <div class="layout">
+    <div class="panel">
+      <h2>Live Transcript <span class="count" id="lineCount">0</span></h2>
+      <div class="scroll" id="transcriptWrap">
+        <div id="transcript"></div>
+        <div class="selbar" id="selbar">
+          <span id="selCount">0 selected</span>
+          <label style="opacity:.8">Send as:</label>
+          <select id="selType">
+            <option value="soundbite">Soundbite</option>
+            <option value="infographic">Infographic</option>
+            <option value="explainer">Explainer</option>
+            <option value="bank">Bank for later</option>
+          </select>
+          <button class="primary" id="selAdd">Add to pipeline</button>
+          <button id="selLink">View on livestream ↗</button>
+          <button id="selClear">Clear</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel">
+      <h2>AI Shortlist — For Editorial Review
+        <span style="display:flex;align-items:center;gap:6px;">
+          <select id="sortSelect">
+            <option value="score">Sort: Highest score</option>
+            <option value="recent">Sort: Most recent</option>
+            <option value="oldest">Sort: Oldest</option>
+          </select>
+          <span class="count" id="cardCount">0</span>
+        </span>
+      </h2>
+      <div class="scroll" id="shortlist"></div>
+    </div>
+  </div>
+  <div class="footer-note">Click transcript lines to select one or more and route them manually — useful when the AI misses something, or you just want to grab a moment yourself. Every card and line also checks against your Watchlist tab and flags matches. Content type is AI-suggested but always editable — your call, always wins.</div>
+</div>
+
+<div class="view" id="view-pipeline">
+  <div class="board" id="board"></div>
+  <div class="footer-note">Shared production board — everything approved from any session lands here, whatever format it's headed for.</div>
+</div>
+
+<div class="view" id="view-roster">
+  <div class="addbar">
+    <input id="rosterName" placeholder="Speaker name">
+    <input id="rosterRole" placeholder="Role / organisation">
+    <button onclick="addSpeaker()">Add speaker</button>
+    <button style="background:var(--charcoal)" onclick="alert('In the real build: bulk-upload your roster via the CSV template, with reference photos and optional voice clips per speaker.')">Bulk upload roster (CSV)</button>
+  </div>
+  <table>
+    <thead><tr><th>Speaker</th><th>Role / Organisation</th><th>Reference photo</th><th>Priority / VIP</th></tr></thead>
+    <tbody id="rosterBody"></tbody>
+  </table>
+  <div class="footer-note">Toggle priority to boost a speaker's quotes in the AI shortlist ranking.</div>
+</div>
+
+<div class="view" id="view-watchlist">
+  <div class="section-lbl">Brands</div>
+  <div class="chips" id="chips-brand"></div>
+  <div class="section-lbl">People</div>
+  <div class="chips" id="chips-person"></div>
+  <div class="section-lbl">Topics</div>
+  <div class="chips" id="chips-topic"></div>
+  <div class="addbar" style="margin-top:10px;">
+    <input id="watchInput" placeholder="Add a brand, person, or topic to watch">
+    <select id="watchType" style="padding:8px;border-radius:8px;border:1px solid var(--line);">
+      <option value="brand">Brand</option>
+      <option value="person">Person</option>
+      <option value="topic">Topic</option>
+    </select>
+    <button onclick="addWatch()">Add to watchlist</button>
+  </div>
+  <div class="footer-note">Anything here gets a scoring boost when mentioned, and flags a match badge on the transcript line and shortlist card. Editable live, no redeploy needed.</div>
+</div>
+
+<script>
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('view-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+const SOURCE_VIDEO = "https://www.youtube.com/watch?v=Yzhpe4DOt8o"; // demo link target — mechanism only, not a real timestamp match
+
+const watch = {
+  brand: ["Masdar", "IRENA"],
+  person: ["Keynote Speaker"],
+  topic: ["hydrogen", "water security", "climate finance"],
+};
+
+function findMatches(text){
+  const out = [];
+  Object.entries(watch).forEach(([kind, vals])=>{
+    vals.forEach(v=>{
+      if(text.toLowerCase().includes(v.toLowerCase())) out.push({kind, value:v});
+    });
+  });
+  return out;
+}
+function highlight(text){
+  let out = text;
+  Object.values(watch).flat().forEach(v=>{
+    const re = new RegExp('('+v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+    out = out.replace(re, '<mark>$1</mark>');
+  });
+  return out;
+}
+function toSeconds(ts){
+  const [h,m,s] = ts.split(':').map(Number);
+  return h*3600+m*60+s;
+}
+
+const transcriptData = [
+  {t:"00:00:04", s:"Moderator", txt:"Thank you all for joining this session. Please welcome our keynote speaker to the stage.", hot:false},
+  {t:"00:00:19", s:"Keynote Speaker", txt:"Good morning. Five years ago, this conversation was about whether the transition was possible.", hot:false},
+  {t:"00:00:27", s:"Keynote Speaker", txt:"Today it is no longer a question of possibility. It is a question of speed.", hot:true, score:94, type:"soundbite", priority:true},
+  {t:"00:00:41", s:"Keynote Speaker", txt:"We have connected fourteen gigawatts of clean capacity across nine countries since 2019.", hot:true, score:82, type:"infographic", priority:true},
+  {t:"00:00:58", s:"Keynote Speaker", txt:"But a statistic on a slide does not keep the lights on for a family at ten at night.", hot:true, score:88, type:"soundbite", priority:true},
+  {t:"00:01:14", s:"Keynote Speaker", txt:"So let me be direct about what comes next, because vague commitments are how this decade gets wasted.", hot:true, score:91, type:"explainer", priority:true},
+  {t:"00:01:29", s:"Keynote Speaker", txt:"We are committing to triple our green hydrogen output by 2030, and Masdar will publish the numbers every quarter, not every year.", hot:true, score:97, type:"explainer", priority:true},
+  {t:"00:01:47", s:"Keynote Speaker", txt:"Accountability is not a communications strategy. It is the only strategy that has ever worked.", hot:true, score:93, type:"soundbite", priority:true},
+  {t:"00:02:02", s:"Panelist — Finance Lead", txt:"Now, financing. Capital is not the constraint anymore, patience is.", hot:true, score:90, type:"soundbite", priority:false},
+  {t:"00:02:18", s:"Panelist — Finance Lead", txt:"We are seeing project timelines shrink from a decade to under four years in the right regulatory environment.", hot:true, score:76, type:"bank", priority:false},
+  {t:"00:02:33", s:"Keynote Speaker", txt:"To the young people in this room: the room you inherit will be judged by what we ship this decade, not what we promise.", hot:true, score:95, type:"soundbite", priority:true},
+  {t:"00:02:50", s:"Moderator", txt:"Thank you. We'll now move to the panel discussion.", hot:false},
+];
+
+const transcriptEl = document.getElementById('transcript');
+const shortlistEl = document.getElementById('shortlist');
+const board = document.getElementById('board');
+const lineCountEl = document.getElementById('lineCount');
+const cardCountEl = document.getElementById('cardCount');
+let lineCount = 0, cardCount = 0;
+let cardData = []; // for sorting
+let cardSeq = 0;
+
+const stages = ["Flagged","In Review","Approved","In Production","Published"];
+const pipelineItems = {Flagged:[],"In Review":[],Approved:[],"In Production":[],Published:[]};
+pipelineItems["In Review"].push({title:"“Accountability is not a communications strategy…”", type:"soundbite", who:"Keynote Speaker"});
+pipelineItems["Approved"].push({title:"14GW clean capacity across 9 countries", type:"infographic", who:"Keynote Speaker"});
+pipelineItems["In Production"].push({title:"Green hydrogen 3x-by-2030 explainer", type:"explainer", who:"Keynote Speaker"});
+pipelineItems["Published"].push({title:"Day 1 wrap-up reel", type:"bank", who:"Multiple speakers"});
+
+function renderBoard(){
+  board.innerHTML = "";
+  stages.forEach(stage=>{
+    const col = document.createElement('div');
+    col.className = 'col';
+    col.innerHTML = `<h3>${stage} <span>${pipelineItems[stage].length}</span></h3><div class="items"></div>`;
+    const itemsEl = col.querySelector('.items');
+    pipelineItems[stage].forEach((it, idx)=>{
+      const div = document.createElement('div');
+      div.className = 'pitem';
+      const nextStage = stages[stages.indexOf(stage)+1];
+      div.innerHTML = `<div class="ttl">${it.title}</div>
+        <span class="tag type-${it.type}">${it.type}</span>
+        <div class="ftr"><span style="color:var(--muted)">${it.who}</span>
+        ${nextStage ? `<button data-stage="${stage}" data-idx="${idx}">→ ${nextStage}</button>` : ''}</div>`;
+      itemsEl.appendChild(div);
+    });
+    board.appendChild(col);
+  });
+  board.querySelectorAll('button[data-stage]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const stage = b.dataset.stage, idx = +b.dataset.idx;
+      const item = pipelineItems[stage].splice(idx,1)[0];
+      const next = stages[stages.indexOf(stage)+1];
+      pipelineItems[next].push(item);
+      renderBoard();
+    });
+  });
+}
+renderBoard();
+
+function renderLine(item, idx){
+  const div = document.createElement('div');
+  div.className = 'line' + (item.hot ? ' hot' : '');
+  div.dataset.idx = idx;
+  const matches = findMatches(item.txt);
+  const chipHtml = matches.length ? `<div class="watch-chips">${matches.map(m=>`<span class="wchip ${m.kind}">${m.value}</span>`).join('')}</div>` : '';
+  div.innerHTML = `<input type="checkbox" class="lineSel">
+    <div class="ts">${item.t}</div><div class="spk">${item.s}</div>
+    <div class="txt">${highlight(item.txt)}${chipHtml}</div>`;
+  div.addEventListener('click', (e)=>{
+    if(e.target.tagName !== 'INPUT'){
+      const cb = div.querySelector('.lineSel');
+      cb.checked = !cb.checked;
+    }
+    div.classList.toggle('selected', div.querySelector('.lineSel').checked);
+    updateSelbar();
+  });
+  transcriptEl.appendChild(div);
+  transcriptEl.parentElement.scrollTop = transcriptEl.parentElement.scrollHeight;
+  lineCount++; lineCountEl.textContent = lineCount;
+}
+
+function updateSelbar(){
+  const selected = [...document.querySelectorAll('.line.selected')];
+  const bar = document.getElementById('selbar');
+  document.getElementById('selCount').textContent = selected.length + ' selected';
+  bar.classList.toggle('show', selected.length > 0);
+}
+document.getElementById('selClear').addEventListener('click', ()=>{
+  document.querySelectorAll('.line.selected').forEach(l=>{l.classList.remove('selected'); l.querySelector('.lineSel').checked=false;});
+  updateSelbar();
+});
+document.getElementById('selAdd').addEventListener('click', ()=>{
+  const selected = [...document.querySelectorAll('.line.selected')];
+  const type = document.getElementById('selType').value;
+  if(!selected.length) return;
+  const texts = selected.map(l=>transcriptData[+l.dataset.idx].txt);
+  pipelineItems.Flagged.push({title: '"'+texts.join(' ').slice(0,60)+'…"', type, who:"Manually selected"});
+  renderBoard();
+  document.getElementById('selClear').click();
+  document.querySelector('.tab-btn[data-tab="pipeline"]').click();
+});
+document.getElementById('selLink').addEventListener('click', ()=>{
+  const selected = [...document.querySelectorAll('.line.selected')];
+  if(!selected.length) return;
+  const first = transcriptData[+selected[0].dataset.idx];
+  const url = SOURCE_VIDEO + '&t=' + toSeconds(first.t) + 's';
+  alert('Demo link (mechanism only — this sample transcript is illustrative, not the real transcript of this video):\n' + url);
+});
+
+function renderCard(item){
+  cardSeq++;
+  const id = 'card-'+cardSeq;
+  const matches = findMatches(item.txt);
+  const rec = {id, item, seq:cardSeq, stage:'flagged'};
+  cardData.push(rec);
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.id = id;
+  const deepLink = SOURCE_VIDEO + '&t=' + toSeconds(item.t) + 's';
+  div.innerHTML = `
+    <div class="top">
+      <select class="type-select" data-id="${id}">
+        <option value="soundbite" ${item.type==='soundbite'?'selected':''}>Soundbite</option>
+        <option value="infographic" ${item.type==='infographic'?'selected':''}>Infographic</option>
+        <option value="explainer" ${item.type==='explainer'?'selected':''}>Explainer</option>
+        <option value="bank" ${item.type==='bank'?'selected':''}>Bank for later</option>
+      </select>
+      <span class="type-hint">AI suggested: ${item.type}</span>
+      ${item.priority ? '<span class="priority-badge">PRIORITY SPEAKER</span>' : ''}
+      <span class="score">Score <b>${item.score}</b>/100</span>
+    </div>
+    <div class="quote">"${highlight(item.txt)}"</div>
+    ${matches.length ? `<div class="watch-chips">${matches.map(m=>`<span class="wchip ${m.kind}">${m.value}</span>`).join('')}</div>` : ''}
+    <div class="meta">${item.s} · ${item.t} · Sample Keynote · <a href="${deepLink}" target="_blank" rel="noopener">View on livestream ↗ (demo link)</a></div>
+    <div class="actions">
+      <button class="approve">Approve → send to pipeline</button>
+      <button class="reject">Reject</button>
+    </div>
+  `;
+  div.querySelector('.type-select').addEventListener('change', (e)=>{
+    rec.item = {...rec.item, type: e.target.value};
+    div.querySelector('.type-hint').nextElementSibling; // no-op, keep hint showing original AI suggestion
+  });
+  const [approveBtn, rejectBtn] = div.querySelectorAll('.actions button');
+  approveBtn.addEventListener('click', () => {
+    div.classList.add('approved');
+    const chosenType = div.querySelector('.type-select').value;
+    div.querySelector('.actions').innerHTML = '<span class="status-label">✓ Approved as ' + chosenType + ' — added to pipeline (Flagged)</span>';
+    pipelineItems.Flagged.push({title: '"'+item.txt.slice(0,50)+(item.txt.length>50?'…':'')+'"', type:chosenType, who:item.s});
+    renderBoard();
+  });
+  rejectBtn.addEventListener('click', () => {
+    div.style.opacity = .45;
+    div.querySelector('.actions').innerHTML = '<span style="font-size:12px;color:#b34747;">Rejected</span>';
+  });
+  shortlistEl.appendChild(div);
+  cardCount++; cardCountEl.textContent = cardCount;
+  applySort();
+}
+
+function applySort(){
+  const mode = document.getElementById('sortSelect').value;
+  const sorted = [...cardData];
+  if(mode === 'score') sorted.sort((a,b)=>b.item.score - a.item.score);
+  else if(mode === 'recent') sorted.sort((a,b)=>b.seq - a.seq);
+  else if(mode === 'oldest') sorted.sort((a,b)=>a.seq - b.seq);
+  sorted.forEach(rec=>{
+    const el = document.getElementById(rec.id);
+    if(el) shortlistEl.appendChild(el);
+  });
+}
+document.getElementById('sortSelect').addEventListener('change', applySort);
+
+let i = 0;
+function tick(){
+  if(i >= transcriptData.length) return;
+  const item = transcriptData[i];
+  renderLine(item, i);
+  if(item.hot){ setTimeout(() => renderCard(item), 350); }
+  i++;
+  setTimeout(tick, item.hot ? 1300 : 800);
+}
+tick();
+
+const roster = [
+  {name:"Keynote Speaker", role:"Placeholder — role/org pending your roster upload", priority:true},
+  {name:"Panelist — Finance Lead", role:"Placeholder — role/org pending your roster upload", priority:false},
+  {name:"Moderator", role:"Placeholder — role/org pending your roster upload", priority:false},
+];
+function initials(n){ return n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
+function renderRoster(){
+  const body = document.getElementById('rosterBody');
+  body.innerHTML = "";
+  roster.forEach((p, idx)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><span class="avatar">${initials(p.name)}</span>${p.name}</td>
+      <td>${p.role}</td>
+      <td style="color:var(--muted)">Not yet uploaded</td>
+      <td><label class="switch"><input type="checkbox" ${p.priority?'checked':''} data-idx="${idx}"><span class="slider"></span></label></td>`;
+    body.appendChild(tr);
+  });
+  body.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change', ()=>{ roster[+cb.dataset.idx].priority = cb.checked; });
+  });
+}
+function addSpeaker(){
+  const name = document.getElementById('rosterName').value.trim();
+  const role = document.getElementById('rosterRole').value.trim() || "Role / organisation pending";
+  if(!name) return;
+  roster.push({name, role, priority:false});
+  document.getElementById('rosterName').value = "";
+  document.getElementById('rosterRole').value = "";
+  renderRoster();
+}
+renderRoster();
+
+function renderChips(){
+  ["brand","person","topic"].forEach(kind=>{
+    const el = document.getElementById('chips-'+kind);
+    el.innerHTML = "";
+    watch[kind].forEach((val, idx)=>{
+      const chip = document.createElement('div');
+      chip.className = 'chip '+kind;
+      chip.innerHTML = `<span>${val}</span><button data-kind="${kind}" data-idx="${idx}">×</button>`;
+      el.appendChild(chip);
+    });
+  });
+  document.querySelectorAll('.chip button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      watch[b.dataset.kind].splice(+b.dataset.idx,1);
+      renderChips();
+    });
+  });
+}
+function addWatch(){
+  const val = document.getElementById('watchInput').value.trim();
+  const kind = document.getElementById('watchType').value;
+  if(!val) return;
+  watch[kind].push(val);
+  document.getElementById('watchInput').value = "";
+  renderChips();
+}
+renderChips();
+</script>
+
+</body>
+</html>
