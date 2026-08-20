@@ -1,504 +1,596 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ADSW Content Engine — Demo v3</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Relevant 24 — Events</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23533afd'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='15' fill='white' text-anchor='middle'%3E24%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   :root{
-    --teal:#0095A1; --cerulean:#00B6DD; --charcoal:#444F5D;
-    --bg:#F6F8F9; --card:#FFFFFF; --line:#E3E8EA; --text:#1D2429; --muted:#6B7680;
+    --primary:#533afd;
+    --primary-deep:#4434d4;
+    --primary-press:#2e2b8c;
+    --primary-soft:#665efd;
+    --primary-subdued:#b9b9f9;
+    --brand-dark-900:#1c1e54;
+    --ink:#0d253d;
+    --ink-secondary:#273951;
+    --ink-mute:#64748d;
+    --ink-mute-2:#61718a;
+    --on-primary:#ffffff;
+    --canvas:#ffffff;
+    --canvas-soft:#f6f9fc;
+    --canvas-cream:#f5e9d4;
+    --hairline:#e3e8ee;
+    --hairline-input:#a8c3de;
+    --ruby:#ea2261;
+    --magenta:#f96bee;
+    --lemon:#9b6829;
+    --shadow-blue:#003770;
+    --r-xs:4px; --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px; --r-pill:9999px;
+    --sp-xxs:2px; --sp-xs:4px; --sp-sm:8px; --sp-md:12px; --sp-lg:16px; --sp-xl:24px; --sp-xxl:32px; --sp-huge:64px;
   }
   *{box-sizing:border-box;}
-  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);}
-  header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:linear-gradient(90deg,var(--charcoal),#2E363F);color:#fff;flex-wrap:wrap;gap:10px;}
-  .brand{display:flex;align-items:center;gap:12px;}
-  .brand .mark{width:34px;height:34px;border-radius:8px;background:linear-gradient(135deg,var(--teal),var(--cerulean));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;}
-  .brand .titles{line-height:1.2;}
-  .brand .titles .top{font-size:11px;letter-spacing:.12em;color:var(--cerulean);font-weight:700;}
-  .brand .titles .bottom{font-size:16px;font-weight:600;}
-  .status{display:flex;align-items:center;gap:8px;font-size:13px;color:#dfe6e8;}
-  .dot{width:8px;height:8px;border-radius:50%;background:#ff5b5b;animation:pulse 1.4s infinite;}
-  @keyframes pulse{0%{opacity:1;}50%{opacity:.35;}100%{opacity:1;}}
-  nav{display:flex;gap:4px;padding:0 24px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto;}
-  nav button{border:none;background:none;padding:13px 16px;font-size:13.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;}
-  nav button.active{color:var(--teal);border-bottom-color:var(--teal);}
-  .view{display:none;padding:16px 24px 40px;}
-  .view.active{display:block;}
-  .session-bar{padding:10px 24px;background:#fff;border-bottom:1px solid var(--line);font-size:13px;color:var(--muted);display:flex;gap:24px;flex-wrap:wrap;}
-  .session-bar b{color:var(--text);}
-  .layout{display:grid;grid-template-columns:1.3fr 1fr;gap:16px;}
-  @media(max-width:900px){.layout{grid-template-columns:1fr;}}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;max-height:74vh;}
-  .panel h2{margin:0;padding:14px 18px;font-size:14px;letter-spacing:.03em;color:var(--charcoal);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
-  .panel h2 .count{background:var(--teal);color:#fff;font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;}
-  .panel h2 select{font-size:11.5px;border:1px solid var(--line);border-radius:6px;padding:3px 6px;color:var(--charcoal);}
-  .scroll{overflow-y:auto;padding:10px 16px;flex:1;}
-  .line{display:flex;gap:8px;padding:8px 4px;border-bottom:1px dashed var(--line);font-size:14px;line-height:1.5;animation:fadeIn .4s ease;cursor:pointer;}
-  @keyframes fadeIn{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
-  .line:hover{background:#F7FBFB;}
-  .line.selected{background:rgba(0,182,221,.10);}
-  .line input{margin-top:4px;}
-  .line .ts{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px;min-width:46px;padding-top:2px;}
-  .line .spk{color:var(--teal);font-weight:700;min-width:150px;font-size:13px;padding-top:1px;}
-  .line .txt{flex:1;}
-  .line.hot .txt{background:linear-gradient(180deg,transparent 60%, rgba(0,182,221,.18) 60%);font-weight:600;}
-  mark{background:rgba(217,140,43,.28);color:#7a4f0f;padding:0 2px;border-radius:3px;font-weight:700;}
-  .selbar{position:sticky;bottom:0;background:var(--charcoal);color:#fff;padding:10px 14px;border-radius:10px;display:none;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;margin-top:8px;}
-  .selbar.show{display:flex;}
-  .selbar select, .selbar button{font-size:12.5px;padding:6px 10px;border-radius:7px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;cursor:pointer;}
-  .selbar button.primary{background:var(--teal);border-color:var(--teal);font-weight:700;}
-  .card{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:#fbfdfd;animation:fadeIn .4s ease;}
-  .card .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;flex-wrap:wrap;}
-  .tag{font-size:10px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:999px;text-transform:uppercase;}
-  .tag.type-soundbite{background:rgba(0,149,161,.12);color:var(--teal);}
-  .tag.type-infographic{background:rgba(217,140,43,.14);color:#a86414;}
-  .tag.type-explainer{background:rgba(123,97,214,.14);color:#6a4fc7;}
-  .tag.type-bank{background:rgba(107,118,128,.14);color:var(--muted);}
-  .priority-badge{font-size:10px;font-weight:700;color:#b34747;background:rgba(179,71,71,.1);padding:2px 8px;border-radius:999px;}
-  .score{font-size:12px;color:var(--muted);font-weight:600;margin-left:auto;}
-  .score b{color:var(--charcoal);}
-  .quote{font-size:14.5px;line-height:1.45;margin:6px 0 8px;color:var(--text);}
-  .meta{font-size:12px;color:var(--muted);margin-bottom:8px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-  .meta a{color:var(--cerulean);text-decoration:none;font-weight:600;}
-  .meta a:hover{text-decoration:underline;}
-  .watch-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
-  .wchip{font-size:10.5px;padding:2px 7px;border-radius:999px;border:1px solid;font-weight:600;}
-  .wchip.brand{color:var(--teal);border-color:var(--teal);background:rgba(0,149,161,.06);}
-  .wchip.person{color:#0a7f97;border-color:var(--cerulean);background:rgba(0,182,221,.06);}
-  .wchip.topic{color:#9c7b2f;border-color:#c9a24a;background:rgba(201,162,74,.08);}
-  .type-select{font-size:11.5px;padding:3px 6px;border-radius:6px;border:1px solid var(--line);color:var(--charcoal);font-weight:600;}
-  .type-hint{font-size:10.5px;color:var(--muted);font-style:italic;}
-  .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
-  .actions button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 10px;font-size:12.5px;cursor:pointer;font-weight:600;color:var(--charcoal);}
-  .actions .approve{border-color:var(--teal);color:var(--teal);}
-  .actions .approve:hover{background:var(--teal);color:#fff;}
-  .actions .reject{color:#b34747;border-color:#eec9c9;}
-  .actions .reject:hover{background:#b34747;color:#fff;border-color:#b34747;}
-  .card.approved{border-color:var(--teal);background:rgba(0,149,161,.05);}
-  .status-label{color:var(--teal);font-weight:700;font-size:12px;}
-  .board{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;overflow-x:auto;}
-  @media(max-width:1100px){.board{grid-template-columns:repeat(5,220px);}}
-  .col{background:var(--card);border:1px solid var(--line);border-radius:12px;min-height:60vh;display:flex;flex-direction:column;}
-  .col h3{margin:0;padding:12px 14px;font-size:12.5px;letter-spacing:.03em;color:var(--charcoal);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;}
-  .col .items{padding:10px;flex:1;}
-  .pitem{background:#fbfdfd;border:1px solid var(--line);border-radius:9px;padding:9px 10px;margin-bottom:8px;font-size:12.5px;}
-  .pitem .ttl{font-weight:600;margin-bottom:4px;}
-  .pitem .ftr{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
-  .pitem button{font-size:11px;border:1px solid var(--line);background:#fff;border-radius:6px;padding:3px 7px;cursor:pointer;color:var(--teal);font-weight:700;}
-  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden;}
-  th,td{padding:10px 12px;text-align:left;font-size:13px;border-bottom:1px solid var(--line);}
-  th{background:#F0F4F5;color:var(--charcoal);font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;}
-  .avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--teal),var(--cerulean));color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-right:8px;vertical-align:middle;}
-  .switch{position:relative;display:inline-block;width:38px;height:20px;}
-  .switch input{opacity:0;width:0;height:0;}
-  .slider{position:absolute;cursor:pointer;inset:0;background:#ccd3d6;border-radius:999px;transition:.2s;}
-  .slider:before{content:"";position:absolute;height:15px;width:15px;left:2.5px;top:2.5px;background:#fff;border-radius:50%;transition:.2s;}
-  input:checked + .slider{background:var(--teal);}
-  input:checked + .slider:before{transform:translateX(18px);}
-  .addbar{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
-  .addbar input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;flex:1;min-width:160px;}
-  .addbar button{padding:8px 14px;border-radius:8px;border:none;background:var(--teal);color:#fff;font-weight:600;font-size:13px;cursor:pointer;}
-  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
-  .chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;display:flex;align-items:center;gap:8px;}
-  .chip.brand{border-color:var(--teal);color:var(--teal);}
-  .chip.person{border-color:var(--cerulean);color:#0a7f97;}
-  .chip.topic{border-color:#c9a24a;color:#9c7b2f;}
-  .chip button{border:none;background:none;color:inherit;cursor:pointer;font-size:14px;line-height:1;opacity:.6;}
-  .chip button:hover{opacity:1;}
-  .section-lbl{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 8px;}
-  .footer-note{padding:14px 0 10px;font-size:12px;color:var(--muted);max-width:900px;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+    font-weight:300;
+    font-feature-settings:"ss01";
+    color:var(--ink);
+    background:var(--canvas-soft);
+    -webkit-font-smoothing:antialiased;
+  }
+  .tabular{ font-feature-settings:"tnum"; letter-spacing:-0.42px; }
+  a{ color:var(--primary); text-decoration:none; }
+  a:hover{ text-decoration:underline; }
+
+  /* ---------- Gradient mesh hero ---------- */
+  .mesh-hero{
+    position:relative;
+    overflow:hidden;
+    background:linear-gradient(115deg, var(--canvas-cream) 0%, #f6cf9b 16%, #d9c2f0 34%, var(--primary-soft) 55%, var(--primary) 72%, var(--ruby) 100%);
+    padding-bottom:56px;
+  }
+  .mesh-hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background:
+      radial-gradient(60% 80% at 15% 10%, rgba(245,233,212,0.9), transparent 60%),
+      radial-gradient(50% 70% at 70% 0%, rgba(102,94,253,0.55), transparent 55%),
+      radial-gradient(45% 60% at 95% 40%, rgba(234,34,97,0.45), transparent 60%);
+    filter: blur(20px);
+    opacity:0.9;
+  }
+  .mesh-hero > *{ position:relative; z-index:1; }
+
+  /* ---------- Nav ---------- */
+  .nav-bar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px;
+    background:var(--canvas);
+    border-radius:4px;
+    margin:20px 24px 0 24px;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; }
+  .brand-mark{
+    width:34px; height:34px; border-radius:9px;
+    background:var(--primary);
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:600; font-size:15px; letter-spacing:-0.5px;
+    box-shadow:0 2px 6px rgba(83,58,253,0.35);
+  }
+  .brand-word{ display:flex; flex-direction:column; line-height:1.05; }
+  .brand-word b{ font-weight:400; font-size:17px; letter-spacing:-0.3px; color:var(--ink); }
+  .brand-word span{ font-size:10px; font-weight:500; letter-spacing:0.6px; text-transform:uppercase; color:var(--primary); }
+  .env-pill{
+    font-size:10px; font-weight:400; letter-spacing:0.1px;
+    background:var(--primary-subdued); color:var(--primary-deep);
+    padding:4px 10px; border-radius:9999px; margin-left:10px;
+  }
+  .nav-actions{ display:flex; align-items:center; gap:10px; }
+  .nav-status{ display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-mute); }
+  .dot{ width:8px; height:8px; border-radius:50%; background:#1fa15a; box-shadow:0 0 0 3px rgba(31,161,90,0.15); }
+  .dot.warn{ background:#c98a1b; box-shadow:0 0 0 3px rgba(201,138,27,0.15); }
+
+  /* ---------- Tabs ---------- */
+  .tabs-wrap{ margin:24px 24px 0 24px; }
+  .tabs{ display:flex; gap:4px; background:var(--canvas); border-radius:9999px; padding:4px; width:fit-content; box-shadow:0 1px 3px rgba(0,55,112,0.08); }
+  .tab-btn{
+    border:none; background:transparent; cursor:pointer;
+    font-family:inherit; font-weight:400; font-size:14px; color:var(--ink-mute);
+    padding:9px 18px; border-radius:9999px; transition:all .15s ease;
+  }
+  .tab-btn.active{ background:var(--primary); color:#fff; }
+  .tab-btn:not(.active):hover{ background:var(--canvas-soft); color:var(--ink); }
+
+  .page{ padding:20px 24px 64px 24px; max-width:1320px; margin:0 auto; }
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--canvas); border:1px solid var(--hairline); border-radius:12px;
+    box-shadow:0 1px 3px rgba(0,55,112,0.08);
+  }
+  .card-pad{ padding:24px; }
+  .grid{ display:grid; gap:16px; }
+  .grid-3{ grid-template-columns:repeat(3,1fr); }
+  .grid-4{ grid-template-columns:repeat(4,1fr); }
+  @media (max-width:900px){ .grid-3,.grid-4{ grid-template-columns:1fr 1fr; } }
+
+  h1,h2,h3{ font-weight:300; margin:0; color:var(--ink); }
+  .display-md{ font-size:26px; line-height:1.12; letter-spacing:-0.26px; }
+  .heading-lg{ font-size:22px; line-height:1.1; letter-spacing:-0.22px; }
+  .heading-md{ font-size:20px; line-height:1.4; letter-spacing:-0.2px; }
+  .heading-sm{ font-size:18px; line-height:1.4; }
+  .body-md{ font-size:15px; line-height:1.4; }
+  .caption{ font-size:13px; font-weight:400; letter-spacing:-0.39px; color:var(--ink-mute); }
+  .micro-cap{ font-size:10px; font-weight:400; letter-spacing:0.1px; text-transform:uppercase; color:var(--ink-mute); }
+
+  .section-title{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    font-family:inherit; font-weight:400; font-size:14px; cursor:pointer;
+    border-radius:9999px; padding:8px 16px; border:none; display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn-primary{ background:var(--primary); color:#fff; }
+  .btn-primary:hover{ background:var(--primary-deep); }
+  .btn-primary:active{ background:var(--primary-press); }
+  .btn-secondary{ background:var(--canvas); color:var(--primary); border:1px solid var(--primary); }
+  .btn-dark{ background:var(--brand-dark-900); color:#fff; }
+  .btn-ghost{ background:transparent; color:var(--ink-mute); }
+  .btn-sm{ font-size:13px; padding:6px 12px; }
+  .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+
+  /* ---------- Inputs ---------- */
+  input[type=text], input[type=search], select, textarea{
+    font-family:inherit; font-weight:300; font-size:15px; color:var(--ink);
+    background:var(--canvas); border:1px solid var(--hairline-input); border-radius:6px;
+    padding:8px 12px; outline:none;
+  }
+  input:focus, select:focus, textarea:focus{ border-color:var(--primary); }
+
+  /* ---------- Tags/pills ---------- */
+  .tag{
+    display:inline-flex; align-items:center; gap:4px;
+    background:var(--primary-subdued); color:var(--primary-deep);
+    font-size:10px; font-weight:400; letter-spacing:0.1px; text-transform:uppercase;
+    padding:4px 8px; border-radius:9999px;
+  }
+  .tag.stage{ background:var(--canvas-cream); color:#8a5a1c; }
+  .tag.type{ background:#e7effe; color:#2451a8; }
+
+  /* ---------- Empty state ---------- */
+  .empty{
+    text-align:center; padding:48px 24px; color:var(--ink-mute);
+  }
+  .empty .icon{ font-size:28px; margin-bottom:8px; }
+
+  /* ---------- Speaker/transcript rows ---------- */
+  .seg-row{ display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--hairline); align-items:flex-start; cursor:pointer; }
+  .seg-row:hover{ background:var(--canvas-soft); }
+  .seg-time{ width:56px; flex:none; font-size:12px; color:var(--ink-mute); font-feature-settings:"tnum"; padding-top:2px;}
+  .seg-speaker{ width:120px; flex:none; font-size:13px; font-weight:500; color:var(--ink-secondary); }
+  .seg-text{ flex:1; font-size:15px; }
+
+  table{ width:100%; border-collapse:collapse; }
+  th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-mute); font-weight:400; padding:8px 12px; border-bottom:1px solid var(--hairline); }
+  td{ padding:12px; border-bottom:1px solid var(--hairline); font-size:14px; }
+
+  /* ---------- Kanban ---------- */
+  .kanban{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+  @media (max-width:1100px){ .kanban{ grid-template-columns:repeat(2,1fr); } }
+  .kanban-col{ background:var(--canvas-soft); border-radius:12px; padding:12px; min-height:220px; }
+  .kanban-col h4{ font-size:12px; font-weight:500; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-mute); margin:4px 8px 12px 8px; }
+  .kcard{ background:var(--canvas); border:1px solid var(--hairline); border-radius:8px; padding:12px; margin-bottom:8px; font-size:13px; box-shadow:0 1px 3px rgba(0,55,112,0.06); }
+  .kcard .q{ font-size:13px; line-height:1.35; margin-bottom:8px; color:var(--ink); }
+  .kcard .meta{ display:flex; justify-content:space-between; align-items:center; }
+
+  .stat{ display:flex; flex-direction:column; gap:4px; }
+  .stat .num{ font-size:32px; font-weight:300; letter-spacing:-0.5px; font-feature-settings:"tnum"; color:var(--ink); }
+  .stat .lbl{ font-size:12px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.4px; }
+
+  .modal-overlay{ position:fixed; inset:0; background:rgba(13,37,61,0.5); display:none; align-items:center; justify-content:center; z-index:50; }
+  .modal-overlay.open{ display:flex; }
+  .modal{ background:var(--canvas); border-radius:16px; padding:24px; width:420px; max-width:90vw; box-shadow:0 8px 24px rgba(0,55,112,0.16); }
+  .field{ margin-bottom:14px; display:flex; flex-direction:column; gap:6px; }
+  .field label{ font-size:12px; color:var(--ink-mute); }
+  .field input, .field select{ width:100%; }
+  .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+
+  .footer{ text-align:center; padding:32px; color:var(--ink-mute); font-size:12px; }
+  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--brand-dark-900); color:#fff; padding:10px 18px; border-radius:9999px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:100; }
+  .toast.show{ opacity:1; }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">
-    <div class="mark">M</div>
-    <div class="titles">
-      <div class="top">PROJECT ADSW · MASDAR</div>
-      <div class="bottom">Content Intelligence & Soundbite Engine</div>
+<div class="mesh-hero">
+  <div class="nav-bar">
+    <div class="brand">
+      <div class="brand-mark">24</div>
+      <div class="brand-word">
+        <b>Relevant 24</b>
+        <span>Events</span>
+      </div>
+      <span class="env-pill" id="envPill">connecting…</span>
+    </div>
+    <div class="nav-actions">
+      <div class="nav-status"><span class="dot" id="statusDot"></span><span id="statusText">Supabase</span></div>
+      <button class="btn btn-secondary btn-sm" onclick="location.reload()">Refresh</button>
     </div>
   </div>
-  <div class="status"><span class="dot"></span> DEMO — sample data, not a live feed</div>
-</header>
 
-<nav>
-  <button class="tab-btn active" data-tab="live">Live Session</button>
-  <button class="tab-btn" data-tab="pipeline">Production Pipeline</button>
-  <button class="tab-btn" data-tab="roster">Speaker Roster</button>
-  <button class="tab-btn" data-tab="watchlist">Watchlist</button>
-</nav>
-
-<div class="session-bar">
-  <div>Session: <b>Sample Keynote — Energy Transition</b></div>
-  <div>Source: <b>Sample transcript (mock data)</b></div>
-  <div>Language: <b>English</b></div>
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="live">Live Session</button>
+      <button class="tab-btn" data-tab="pipeline">Production Pipeline</button>
+      <button class="tab-btn" data-tab="speakers">Speaker Roster</button>
+      <button class="tab-btn" data-tab="watchlist">Watchlist</button>
+    </div>
+  </div>
 </div>
 
-<div class="view active" id="view-live">
-  <div class="layout">
-    <div class="panel">
-      <h2>Live Transcript <span class="count" id="lineCount">0</span></h2>
-      <div class="scroll" id="transcriptWrap">
-        <div id="transcript"></div>
-        <div class="selbar" id="selbar">
-          <span id="selCount">0 selected</span>
-          <label style="opacity:.8">Send as:</label>
-          <select id="selType">
-            <option value="soundbite">Soundbite</option>
-            <option value="infographic">Infographic</option>
-            <option value="explainer">Explainer</option>
-            <option value="bank">Bank for later</option>
+<div class="page">
+
+  <!-- LIVE SESSION -->
+  <div class="panel active" id="panel-live">
+    <div class="grid grid-3" style="margin-bottom:16px;">
+      <div class="card card-pad stat"><div class="num tabular" id="statEvents">–</div><div class="lbl">Events tracked</div></div>
+      <div class="card card-pad stat"><div class="num tabular" id="statSegments">–</div><div class="lbl">Transcript segments</div></div>
+      <div class="card card-pad stat"><div class="num tabular" id="statShortlist">–</div><div class="lbl">AI shortlist items</div></div>
+    </div>
+
+    <div class="card card-pad" style="margin-bottom:16px;">
+      <div class="section-title">
+        <h3 class="heading-md">Event</h3>
+        <select id="eventSelect" style="min-width:320px;"></select>
+      </div>
+      <div class="caption" id="eventMeta">Loading event…</div>
+    </div>
+
+    <div class="grid" style="grid-template-columns:1.4fr 1fr;">
+      <div class="card card-pad">
+        <div class="section-title"><h3 class="heading-md">Transcript</h3><span class="micro-cap" id="segCount"></span></div>
+        <div id="transcriptList"></div>
+      </div>
+      <div class="card card-pad">
+        <div class="section-title">
+          <h3 class="heading-md">AI Shortlist</h3>
+          <select id="sortShortlist" class="btn-sm" style="border:1px solid var(--hairline-input); border-radius:6px; padding:4px 8px; font-size:12px;">
+            <option value="score">Score</option>
+            <option value="recent">Most recent</option>
+            <option value="oldest">Oldest</option>
           </select>
-          <button class="primary" id="selAdd">Add to pipeline</button>
-          <button id="selLink">View on livestream ↗</button>
-          <button id="selClear">Clear</button>
         </div>
+        <div id="shortlistList"></div>
       </div>
     </div>
-    <div class="panel">
-      <h2>AI Shortlist — For Editorial Review
-        <span style="display:flex;align-items:center;gap:6px;">
-          <select id="sortSelect">
-            <option value="score">Sort: Highest score</option>
-            <option value="recent">Sort: Most recent</option>
-            <option value="oldest">Sort: Oldest</option>
-          </select>
-          <span class="count" id="cardCount">0</span>
-        </span>
-      </h2>
-      <div class="scroll" id="shortlist"></div>
+  </div>
+
+  <!-- PRODUCTION PIPELINE -->
+  <div class="panel" id="panel-pipeline">
+    <div class="section-title"><h2 class="heading-lg">Production Pipeline</h2><span class="caption">Live from <code>shortlist_items</code></span></div>
+    <div class="kanban" id="kanbanBoard"></div>
+  </div>
+
+  <!-- SPEAKER ROSTER -->
+  <div class="panel" id="panel-speakers">
+    <div class="section-title">
+      <h2 class="heading-lg">Speaker Roster</h2>
+      <button class="btn btn-primary btn-sm" onclick="openSpeakerModal()">+ Add speaker</button>
+    </div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Name</th><th>Role</th><th>Organization</th><th>Priority</th><th></th></tr></thead>
+        <tbody id="speakerRows"></tbody>
+      </table>
+      <div class="empty" id="speakerEmpty" style="display:none;">
+        <div class="icon">🎙️</div>
+        <div class="body-md">No speakers enrolled yet.</div>
+        <div class="caption">Add the ADSW speaker roster to enable priority matching.</div>
+      </div>
     </div>
   </div>
-  <div class="footer-note">Click transcript lines to select one or more and route them manually — useful when the AI misses something, or you just want to grab a moment yourself. Every card and line also checks against your Watchlist tab and flags matches. Content type is AI-suggested but always editable — your call, always wins.</div>
-</div>
 
-<div class="view" id="view-pipeline">
-  <div class="board" id="board"></div>
-  <div class="footer-note">Shared production board — everything approved from any session lands here, whatever format it's headed for.</div>
-</div>
-
-<div class="view" id="view-roster">
-  <div class="addbar">
-    <input id="rosterName" placeholder="Speaker name">
-    <input id="rosterRole" placeholder="Role / organisation">
-    <button onclick="addSpeaker()">Add speaker</button>
-    <button style="background:var(--charcoal)" onclick="alert('In the real build: bulk-upload your roster via the CSV template, with reference photos and optional voice clips per speaker.')">Bulk upload roster (CSV)</button>
+  <!-- WATCHLIST -->
+  <div class="panel" id="panel-watchlist">
+    <div class="section-title">
+      <h2 class="heading-lg">Watchlist</h2>
+      <button class="btn btn-primary btn-sm" onclick="openWatchlistModal()">+ Add item</button>
+    </div>
+    <div class="grid grid-3" id="watchlistGroups"></div>
   </div>
-  <table>
-    <thead><tr><th>Speaker</th><th>Role / Organisation</th><th>Reference photo</th><th>Priority / VIP</th></tr></thead>
-    <tbody id="rosterBody"></tbody>
-  </table>
-  <div class="footer-note">Toggle priority to boost a speaker's quotes in the AI shortlist ranking.</div>
+
 </div>
 
-<div class="view" id="view-watchlist">
-  <div class="section-lbl">Brands</div>
-  <div class="chips" id="chips-brand"></div>
-  <div class="section-lbl">People</div>
-  <div class="chips" id="chips-person"></div>
-  <div class="section-lbl">Topics</div>
-  <div class="chips" id="chips-topic"></div>
-  <div class="addbar" style="margin-top:10px;">
-    <input id="watchInput" placeholder="Add a brand, person, or topic to watch">
-    <select id="watchType" style="padding:8px;border-radius:8px;border:1px solid var(--line);">
-      <option value="brand">Brand</option>
-      <option value="person">Person</option>
-      <option value="topic">Topic</option>
-    </select>
-    <button onclick="addWatch()">Add to watchlist</button>
+<div class="footer">Relevant 24 — Events · live data via Supabase (ap-south-1) · <span id="lastSync">syncing…</span></div>
+
+<!-- Speaker modal -->
+<div class="modal-overlay" id="speakerModalOverlay">
+  <div class="modal">
+    <h3 class="heading-md" style="margin-bottom:16px;">Add speaker</h3>
+    <div class="field"><label>Name</label><input type="text" id="spName" /></div>
+    <div class="field"><label>Role</label><input type="text" id="spRole" /></div>
+    <div class="field"><label>Organization</label><input type="text" id="spOrg" /></div>
+    <div class="field" style="flex-direction:row; align-items:center; gap:8px;"><input type="checkbox" id="spPriority" style="width:auto;" /><label style="margin:0;">Priority speaker</label></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('speakerModalOverlay')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitSpeaker()">Add</button>
+    </div>
   </div>
-  <div class="footer-note">Anything here gets a scoring boost when mentioned, and flags a match badge on the transcript line and shortlist card. Editable live, no redeploy needed.</div>
 </div>
+
+<!-- Watchlist modal -->
+<div class="modal-overlay" id="watchlistModalOverlay">
+  <div class="modal">
+    <h3 class="heading-md" style="margin-bottom:16px;">Add watchlist item</h3>
+    <div class="field"><label>Kind</label>
+      <select id="wlKind"><option value="brand">Brand</option><option value="person">Person</option><option value="topic">Topic</option></select>
+    </div>
+    <div class="field"><label>Value</label><input type="text" id="wlValue" placeholder="e.g. Masdar, H.E. ..., green hydrogen" /></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('watchlistModalOverlay')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitWatchlist()">Add</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
+const SUPABASE_URL = "https://cscyhgaoglubwpuhqnjv.supabase.co";
+const SUPABASE_KEY = "sb_publishable_G_MTJPRf8Qf6SLm1gv6DxA_w4OWvxkM";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let state = { events:[], currentEventId:null, speakers:[], watchlist:[], segments:[], shortlist:[] };
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+function setStatus(ok, label){
+  document.getElementById('statusDot').classList.toggle('warn', !ok);
+  document.getElementById('statusText').textContent = label;
+  document.getElementById('envPill').textContent = ok ? 'live · ap-south-1' : 'connection issue';
+}
+
+// ---------- Tabs ----------
 document.querySelectorAll('.tab-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('view-'+btn.dataset.tab).classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
   });
 });
 
-const SOURCE_VIDEO = "https://www.youtube.com/watch?v=Yzhpe4DOt8o"; // demo link target — mechanism only, not a real timestamp match
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+function openSpeakerModal(){ openModal('speakerModalOverlay'); }
+function openWatchlistModal(){ openModal('watchlistModalOverlay'); }
 
-const watch = {
-  brand: ["Masdar", "IRENA"],
-  person: ["Keynote Speaker"],
-  topic: ["hydrogen", "water security", "climate finance"],
-};
-
-function findMatches(text){
-  const out = [];
-  Object.entries(watch).forEach(([kind, vals])=>{
-    vals.forEach(v=>{
-      if(text.toLowerCase().includes(v.toLowerCase())) out.push({kind, value:v});
-    });
-  });
-  return out;
-}
-function highlight(text){
-  let out = text;
-  Object.values(watch).flat().forEach(v=>{
-    const re = new RegExp('('+v.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
-    out = out.replace(re, '<mark>$1</mark>');
-  });
-  return out;
-}
-function toSeconds(ts){
-  const [h,m,s] = ts.split(':').map(Number);
-  return h*3600+m*60+s;
+// ---------- Data loaders ----------
+async function loadEvents(){
+  const { data, error } = await sb.from('events').select('*').order('created_at');
+  if(error){ setStatus(false, 'Supabase error'); console.error(error); return; }
+  setStatus(true, 'Supabase connected');
+  state.events = data || [];
+  const sel = document.getElementById('eventSelect');
+  sel.innerHTML = state.events.map(e=>`<option value="${e.id}">${e.name}</option>`).join('') || '<option>No events yet</option>';
+  if(state.events.length){
+    state.currentEventId = state.events[0].id;
+    sel.value = state.currentEventId;
+  }
+  sel.onchange = ()=>{ state.currentEventId = sel.value; refreshEventScoped(); };
+  document.getElementById('statEvents').textContent = state.events.length;
+  refreshEventScoped();
 }
 
-const transcriptData = [
-  {t:"00:00:04", s:"Moderator", txt:"Thank you all for joining this session. Please welcome our keynote speaker to the stage.", hot:false},
-  {t:"00:00:19", s:"Keynote Speaker", txt:"Good morning. Five years ago, this conversation was about whether the transition was possible.", hot:false},
-  {t:"00:00:27", s:"Keynote Speaker", txt:"Today it is no longer a question of possibility. It is a question of speed.", hot:true, score:94, type:"soundbite", priority:true},
-  {t:"00:00:41", s:"Keynote Speaker", txt:"We have connected fourteen gigawatts of clean capacity across nine countries since 2019.", hot:true, score:82, type:"infographic", priority:true},
-  {t:"00:00:58", s:"Keynote Speaker", txt:"But a statistic on a slide does not keep the lights on for a family at ten at night.", hot:true, score:88, type:"soundbite", priority:true},
-  {t:"00:01:14", s:"Keynote Speaker", txt:"So let me be direct about what comes next, because vague commitments are how this decade gets wasted.", hot:true, score:91, type:"explainer", priority:true},
-  {t:"00:01:29", s:"Keynote Speaker", txt:"We are committing to triple our green hydrogen output by 2030, and Masdar will publish the numbers every quarter, not every year.", hot:true, score:97, type:"explainer", priority:true},
-  {t:"00:01:47", s:"Keynote Speaker", txt:"Accountability is not a communications strategy. It is the only strategy that has ever worked.", hot:true, score:93, type:"soundbite", priority:true},
-  {t:"00:02:02", s:"Panelist — Finance Lead", txt:"Now, financing. Capital is not the constraint anymore, patience is.", hot:true, score:90, type:"soundbite", priority:false},
-  {t:"00:02:18", s:"Panelist — Finance Lead", txt:"We are seeing project timelines shrink from a decade to under four years in the right regulatory environment.", hot:true, score:76, type:"bank", priority:false},
-  {t:"00:02:33", s:"Keynote Speaker", txt:"To the young people in this room: the room you inherit will be judged by what we ship this decade, not what we promise.", hot:true, score:95, type:"soundbite", priority:true},
-  {t:"00:02:50", s:"Moderator", txt:"Thank you. We'll now move to the panel discussion.", hot:false},
-];
-
-const transcriptEl = document.getElementById('transcript');
-const shortlistEl = document.getElementById('shortlist');
-const board = document.getElementById('board');
-const lineCountEl = document.getElementById('lineCount');
-const cardCountEl = document.getElementById('cardCount');
-let lineCount = 0, cardCount = 0;
-let cardData = []; // for sorting
-let cardSeq = 0;
-
-const stages = ["Flagged","In Review","Approved","In Production","Published"];
-const pipelineItems = {Flagged:[],"In Review":[],Approved:[],"In Production":[],Published:[]};
-pipelineItems["In Review"].push({title:"“Accountability is not a communications strategy…”", type:"soundbite", who:"Keynote Speaker"});
-pipelineItems["Approved"].push({title:"14GW clean capacity across 9 countries", type:"infographic", who:"Keynote Speaker"});
-pipelineItems["In Production"].push({title:"Green hydrogen 3x-by-2030 explainer", type:"explainer", who:"Keynote Speaker"});
-pipelineItems["Published"].push({title:"Day 1 wrap-up reel", type:"bank", who:"Multiple speakers"});
-
-function renderBoard(){
-  board.innerHTML = "";
-  stages.forEach(stage=>{
-    const col = document.createElement('div');
-    col.className = 'col';
-    col.innerHTML = `<h3>${stage} <span>${pipelineItems[stage].length}</span></h3><div class="items"></div>`;
-    const itemsEl = col.querySelector('.items');
-    pipelineItems[stage].forEach((it, idx)=>{
-      const div = document.createElement('div');
-      div.className = 'pitem';
-      const nextStage = stages[stages.indexOf(stage)+1];
-      div.innerHTML = `<div class="ttl">${it.title}</div>
-        <span class="tag type-${it.type}">${it.type}</span>
-        <div class="ftr"><span style="color:var(--muted)">${it.who}</span>
-        ${nextStage ? `<button data-stage="${stage}" data-idx="${idx}">→ ${nextStage}</button>` : ''}</div>`;
-      itemsEl.appendChild(div);
-    });
-    board.appendChild(col);
-  });
-  board.querySelectorAll('button[data-stage]').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      const stage = b.dataset.stage, idx = +b.dataset.idx;
-      const item = pipelineItems[stage].splice(idx,1)[0];
-      const next = stages[stages.indexOf(stage)+1];
-      pipelineItems[next].push(item);
-      renderBoard();
-    });
-  });
-}
-renderBoard();
-
-function renderLine(item, idx){
-  const div = document.createElement('div');
-  div.className = 'line' + (item.hot ? ' hot' : '');
-  div.dataset.idx = idx;
-  const matches = findMatches(item.txt);
-  const chipHtml = matches.length ? `<div class="watch-chips">${matches.map(m=>`<span class="wchip ${m.kind}">${m.value}</span>`).join('')}</div>` : '';
-  div.innerHTML = `<input type="checkbox" class="lineSel">
-    <div class="ts">${item.t}</div><div class="spk">${item.s}</div>
-    <div class="txt">${highlight(item.txt)}${chipHtml}</div>`;
-  div.addEventListener('click', (e)=>{
-    if(e.target.tagName !== 'INPUT'){
-      const cb = div.querySelector('.lineSel');
-      cb.checked = !cb.checked;
-    }
-    div.classList.toggle('selected', div.querySelector('.lineSel').checked);
-    updateSelbar();
-  });
-  transcriptEl.appendChild(div);
-  transcriptEl.parentElement.scrollTop = transcriptEl.parentElement.scrollHeight;
-  lineCount++; lineCountEl.textContent = lineCount;
+function renderEventMeta(){
+  const ev = state.events.find(e=>e.id===state.currentEventId);
+  const el = document.getElementById('eventMeta');
+  if(!ev){ el.textContent = 'No event selected.'; return; }
+  el.innerHTML = `Source: ${ev.source_type} · <a href="${ev.source_url}" target="_blank" rel="noopener">${ev.source_url}</a>`;
 }
 
-function updateSelbar(){
-  const selected = [...document.querySelectorAll('.line.selected')];
-  const bar = document.getElementById('selbar');
-  document.getElementById('selCount').textContent = selected.length + ' selected';
-  bar.classList.toggle('show', selected.length > 0);
-}
-document.getElementById('selClear').addEventListener('click', ()=>{
-  document.querySelectorAll('.line.selected').forEach(l=>{l.classList.remove('selected'); l.querySelector('.lineSel').checked=false;});
-  updateSelbar();
-});
-document.getElementById('selAdd').addEventListener('click', ()=>{
-  const selected = [...document.querySelectorAll('.line.selected')];
-  const type = document.getElementById('selType').value;
-  if(!selected.length) return;
-  const texts = selected.map(l=>transcriptData[+l.dataset.idx].txt);
-  pipelineItems.Flagged.push({title: '"'+texts.join(' ').slice(0,60)+'…"', type, who:"Manually selected"});
-  renderBoard();
-  document.getElementById('selClear').click();
-  document.querySelector('.tab-btn[data-tab="pipeline"]').click();
-});
-document.getElementById('selLink').addEventListener('click', ()=>{
-  const selected = [...document.querySelectorAll('.line.selected')];
-  if(!selected.length) return;
-  const first = transcriptData[+selected[0].dataset.idx];
-  const url = SOURCE_VIDEO + '&t=' + toSeconds(first.t) + 's';
-  alert('Demo link (mechanism only — this sample transcript is illustrative, not the real transcript of this video):\n' + url);
-});
-
-function renderCard(item){
-  cardSeq++;
-  const id = 'card-'+cardSeq;
-  const matches = findMatches(item.txt);
-  const rec = {id, item, seq:cardSeq, stage:'flagged'};
-  cardData.push(rec);
-  const div = document.createElement('div');
-  div.className = 'card';
-  div.id = id;
-  const deepLink = SOURCE_VIDEO + '&t=' + toSeconds(item.t) + 's';
-  div.innerHTML = `
-    <div class="top">
-      <select class="type-select" data-id="${id}">
-        <option value="soundbite" ${item.type==='soundbite'?'selected':''}>Soundbite</option>
-        <option value="infographic" ${item.type==='infographic'?'selected':''}>Infographic</option>
-        <option value="explainer" ${item.type==='explainer'?'selected':''}>Explainer</option>
-        <option value="bank" ${item.type==='bank'?'selected':''}>Bank for later</option>
-      </select>
-      <span class="type-hint">AI suggested: ${item.type}</span>
-      ${item.priority ? '<span class="priority-badge">PRIORITY SPEAKER</span>' : ''}
-      <span class="score">Score <b>${item.score}</b>/100</span>
-    </div>
-    <div class="quote">"${highlight(item.txt)}"</div>
-    ${matches.length ? `<div class="watch-chips">${matches.map(m=>`<span class="wchip ${m.kind}">${m.value}</span>`).join('')}</div>` : ''}
-    <div class="meta">${item.s} · ${item.t} · Sample Keynote · <a href="${deepLink}" target="_blank" rel="noopener">View on livestream ↗ (demo link)</a></div>
-    <div class="actions">
-      <button class="approve">Approve → send to pipeline</button>
-      <button class="reject">Reject</button>
-    </div>
-  `;
-  div.querySelector('.type-select').addEventListener('change', (e)=>{
-    rec.item = {...rec.item, type: e.target.value};
-    div.querySelector('.type-hint').nextElementSibling; // no-op, keep hint showing original AI suggestion
-  });
-  const [approveBtn, rejectBtn] = div.querySelectorAll('.actions button');
-  approveBtn.addEventListener('click', () => {
-    div.classList.add('approved');
-    const chosenType = div.querySelector('.type-select').value;
-    div.querySelector('.actions').innerHTML = '<span class="status-label">✓ Approved as ' + chosenType + ' — added to pipeline (Flagged)</span>';
-    pipelineItems.Flagged.push({title: '"'+item.txt.slice(0,50)+(item.txt.length>50?'…':'')+'"', type:chosenType, who:item.s});
-    renderBoard();
-  });
-  rejectBtn.addEventListener('click', () => {
-    div.style.opacity = .45;
-    div.querySelector('.actions').innerHTML = '<span style="font-size:12px;color:#b34747;">Rejected</span>';
-  });
-  shortlistEl.appendChild(div);
-  cardCount++; cardCountEl.textContent = cardCount;
-  applySort();
+async function refreshEventScoped(){
+  renderEventMeta();
+  await Promise.all([loadTranscript(), loadShortlist()]);
 }
 
-function applySort(){
-  const mode = document.getElementById('sortSelect').value;
-  const sorted = [...cardData];
-  if(mode === 'score') sorted.sort((a,b)=>b.item.score - a.item.score);
-  else if(mode === 'recent') sorted.sort((a,b)=>b.seq - a.seq);
-  else if(mode === 'oldest') sorted.sort((a,b)=>a.seq - b.seq);
-  sorted.forEach(rec=>{
-    const el = document.getElementById(rec.id);
-    if(el) shortlistEl.appendChild(el);
-  });
+async function loadTranscript(){
+  const box = document.getElementById('transcriptList');
+  if(!state.currentEventId){ box.innerHTML = emptyHtml('📝','No event selected'); return; }
+  const { data, error } = await sb.from('transcript_segments').select('*').eq('event_id', state.currentEventId).order('start_ms');
+  if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load transcript'); return; }
+  state.segments = data || [];
+  document.getElementById('segCount').textContent = state.segments.length + ' segments';
+  document.getElementById('statSegments').textContent = state.segments.length;
+  if(!state.segments.length){
+    box.innerHTML = emptyHtml('🎧','No transcript yet for this event','Run transcribe-audio on a real clip to populate this in real time.');
+    return;
+  }
+  box.innerHTML = state.segments.map(s=>`
+    <div class="seg-row">
+      <div class="seg-time tabular">${msToClock(s.start_ms)}</div>
+      <div class="seg-speaker">${s.speaker_label || 'Unknown'}</div>
+      <div class="seg-text">${escapeHtml(s.text)}</div>
+    </div>`).join('');
 }
-document.getElementById('sortSelect').addEventListener('change', applySort);
 
-let i = 0;
-function tick(){
-  if(i >= transcriptData.length) return;
-  const item = transcriptData[i];
-  renderLine(item, i);
-  if(item.hot){ setTimeout(() => renderCard(item), 350); }
-  i++;
-  setTimeout(tick, item.hot ? 1300 : 800);
+async function loadShortlist(){
+  const box = document.getElementById('shortlistList');
+  if(!state.currentEventId){ box.innerHTML = emptyHtml('✨','No event selected'); return; }
+  let query = sb.from('shortlist_items').select('*').eq('event_id', state.currentEventId);
+  const { data, error } = await query;
+  if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load shortlist'); return; }
+  let items = data || [];
+  const sortMode = document.getElementById('sortShortlist').value;
+  if(sortMode==='score') items.sort((a,b)=>(b.score||0)-(a.score||0));
+  else if(sortMode==='recent') items.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  else items.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+  state.shortlist = items;
+  document.getElementById('statShortlist').textContent = items.length;
+  if(!items.length){
+    box.innerHTML = emptyHtml('✨','Shortlist is empty','score-transcript will populate this once a clip is transcribed.');
+    return;
+  }
+  box.innerHTML = items.map(it=>`
+    <div class="kcard">
+      <div class="q">"${escapeHtml(it.quote)}"</div>
+      <div class="meta">
+        <span class="tag type">${it.content_type || it.suggested_content_type}</span>
+        <span class="caption tabular">score ${it.score ?? '–'}</span>
+      </div>
+    </div>`).join('');
 }
-tick();
+document.getElementById('sortShortlist').addEventListener('change', loadShortlist);
 
-const roster = [
-  {name:"Keynote Speaker", role:"Placeholder — role/org pending your roster upload", priority:true},
-  {name:"Panelist — Finance Lead", role:"Placeholder — role/org pending your roster upload", priority:false},
-  {name:"Moderator", role:"Placeholder — role/org pending your roster upload", priority:false},
-];
-function initials(n){ return n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase(); }
-function renderRoster(){
-  const body = document.getElementById('rosterBody');
-  body.innerHTML = "";
-  roster.forEach((p, idx)=>{
-    const tr = document.createElement('tr');
-    tr.innerHTML = `<td><span class="avatar">${initials(p.name)}</span>${p.name}</td>
-      <td>${p.role}</td>
-      <td style="color:var(--muted)">Not yet uploaded</td>
-      <td><label class="switch"><input type="checkbox" ${p.priority?'checked':''} data-idx="${idx}"><span class="slider"></span></label></td>`;
-    body.appendChild(tr);
-  });
-  body.querySelectorAll('input[type=checkbox]').forEach(cb=>{
-    cb.addEventListener('change', ()=>{ roster[+cb.dataset.idx].priority = cb.checked; });
-  });
+async function loadSpeakers(){
+  const { data, error } = await sb.from('speakers').select('*').order('created_at');
+  const rows = document.getElementById('speakerRows');
+  const emptyEl = document.getElementById('speakerEmpty');
+  if(error){ console.error(error); rows.innerHTML=''; emptyEl.style.display='block'; return; }
+  state.speakers = data || [];
+  if(!state.speakers.length){ rows.innerHTML=''; emptyEl.style.display='block'; return; }
+  emptyEl.style.display='none';
+  rows.innerHTML = state.speakers.map(s=>`
+    <tr>
+      <td>${escapeHtml(s.name)}</td>
+      <td>${escapeHtml(s.role||'—')}</td>
+      <td>${escapeHtml(s.organization||'—')}</td>
+      <td>${s.is_priority ? '<span class="tag">priority</span>' : '<span class="caption">—</span>'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="deleteSpeaker('${s.id}')">Remove</button></td>
+    </tr>`).join('');
 }
-function addSpeaker(){
-  const name = document.getElementById('rosterName').value.trim();
-  const role = document.getElementById('rosterRole').value.trim() || "Role / organisation pending";
-  if(!name) return;
-  roster.push({name, role, priority:false});
-  document.getElementById('rosterName').value = "";
-  document.getElementById('rosterRole').value = "";
-  renderRoster();
-}
-renderRoster();
 
-function renderChips(){
-  ["brand","person","topic"].forEach(kind=>{
-    const el = document.getElementById('chips-'+kind);
-    el.innerHTML = "";
-    watch[kind].forEach((val, idx)=>{
-      const chip = document.createElement('div');
-      chip.className = 'chip '+kind;
-      chip.innerHTML = `<span>${val}</span><button data-kind="${kind}" data-idx="${idx}">×</button>`;
-      el.appendChild(chip);
-    });
-  });
-  document.querySelectorAll('.chip button').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      watch[b.dataset.kind].splice(+b.dataset.idx,1);
-      renderChips();
-    });
-  });
+async function submitSpeaker(){
+  const name = document.getElementById('spName').value.trim();
+  if(!name){ toast('Name is required'); return; }
+  const payload = {
+    name,
+    role: document.getElementById('spRole').value.trim() || null,
+    organization: document.getElementById('spOrg').value.trim() || null,
+    is_priority: document.getElementById('spPriority').checked,
+    event_id: state.currentEventId
+  };
+  const { error } = await sb.from('speakers').insert(payload);
+  if(error){ toast('Error adding speaker'); console.error(error); return; }
+  closeModal('speakerModalOverlay');
+  document.getElementById('spName').value=''; document.getElementById('spRole').value=''; document.getElementById('spOrg').value=''; document.getElementById('spPriority').checked=false;
+  toast('Speaker added');
+  loadSpeakers();
 }
-function addWatch(){
-  const val = document.getElementById('watchInput').value.trim();
-  const kind = document.getElementById('watchType').value;
-  if(!val) return;
-  watch[kind].push(val);
-  document.getElementById('watchInput').value = "";
-  renderChips();
+
+async function deleteSpeaker(id){
+  const { error } = await sb.from('speakers').delete().eq('id', id);
+  if(error){ toast('Error removing speaker'); return; }
+  toast('Speaker removed');
+  loadSpeakers();
 }
-renderChips();
+
+async function loadWatchlist(){
+  const { data, error } = await sb.from('watchlist_items').select('*').order('created_at');
+  const box = document.getElementById('watchlistGroups');
+  if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load watchlist'); return; }
+  state.watchlist = data || [];
+  const kinds = ['brand','person','topic'];
+  box.innerHTML = kinds.map(kind=>{
+    const items = state.watchlist.filter(w=>w.kind===kind);
+    return `<div class="card card-pad">
+      <h3 class="heading-sm" style="margin-bottom:12px; text-transform:capitalize;">${kind}s</h3>
+      ${items.length ? items.map(w=>`
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--hairline);">
+          <span class="body-md">${escapeHtml(w.value)}</span>
+          <button class="btn btn-ghost btn-sm" onclick="deleteWatchlist('${w.id}')">✕</button>
+        </div>`).join('') : `<div class="caption">No ${kind}s yet.</div>`}
+    </div>`;
+  }).join('');
+}
+
+async function submitWatchlist(){
+  const value = document.getElementById('wlValue').value.trim();
+  if(!value){ toast('Value is required'); return; }
+  const payload = { kind: document.getElementById('wlKind').value, value, event_id: state.currentEventId };
+  const { error } = await sb.from('watchlist_items').insert(payload);
+  if(error){ toast('Error adding item'); console.error(error); return; }
+  closeModal('watchlistModalOverlay');
+  document.getElementById('wlValue').value='';
+  toast('Watchlist item added');
+  loadWatchlist();
+}
+
+async function deleteWatchlist(id){
+  const { error } = await sb.from('watchlist_items').delete().eq('id', id);
+  if(error){ toast('Error removing item'); return; }
+  toast('Item removed');
+  loadWatchlist();
+}
+
+async function loadPipeline(){
+  const { data, error } = await sb.from('shortlist_items').select('*').order('updated_at', {ascending:false});
+  const board = document.getElementById('kanbanBoard');
+  if(error){ console.error(error); board.innerHTML = emptyHtml('⚠️','Could not load pipeline'); return; }
+  const stages = [
+    ['flagged','Flagged'], ['in_review','In Review'], ['approved','Approved'],
+    ['in_production','In Production'], ['published','Published']
+  ];
+  const items = data || [];
+  board.innerHTML = stages.map(([key,label])=>{
+    const col = items.filter(it=>it.stage===key);
+    return `<div class="kanban-col">
+      <h4>${label} <span class="tabular">(${col.length})</span></h4>
+      ${col.length ? col.map(it=>`
+        <div class="kcard">
+          <div class="q">"${escapeHtml(it.quote)}"</div>
+          <div class="meta">
+            <span class="tag type">${it.content_type || it.suggested_content_type}</span>
+            ${key!=='published' ? `<button class="btn btn-ghost btn-sm" onclick="advanceStage('${it.id}','${key}')">Advance →</button>` : ''}
+          </div>
+        </div>`).join('') : `<div class="caption" style="padding:8px;">Empty</div>`}
+    </div>`;
+  }).join('');
+}
+
+async function advanceStage(id, current){
+  const order = ['flagged','in_review','approved','in_production','published'];
+  const next = order[order.indexOf(current)+1];
+  if(!next) return;
+  const { error } = await sb.from('shortlist_items').update({ stage: next }).eq('id', id);
+  if(error){ toast('Error advancing item'); return; }
+  toast('Moved to ' + next.replace('_',' '));
+  loadPipeline();
+}
+
+// ---------- Utils ----------
+function msToClock(ms){
+  if(ms==null) return '--:--';
+  const s = Math.floor(ms/1000); const m = Math.floor(s/60); const r = s%60;
+  return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0');
+}
+function escapeHtml(str){
+  if(str==null) return '';
+  return str.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function emptyHtml(icon, title, sub){
+  return `<div class="empty"><div class="icon">${icon}</div><div class="body-md">${title}</div>${sub?`<div class="caption">${sub}</div>`:''}</div>`;
+}
+
+// ---------- Init ----------
+async function init(){
+  await loadEvents();
+  await Promise.all([loadSpeakers(), loadWatchlist(), loadPipeline()]);
+  document.getElementById('lastSync').textContent = 'last synced ' + new Date().toLocaleTimeString();
+}
+init();
 </script>
-
 </body>
 </html>
