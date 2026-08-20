@@ -470,18 +470,42 @@ async function loadTranscript(){
   const { data, error } = await sb.from('transcript_segments').select('*').eq('event_id', state.currentEventId).order('start_ms');
   if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load transcript'); return; }
   state.segments = data || [];
-  document.getElementById('segCount').textContent = state.segments.length + ' segments';
   document.getElementById('statSegments').textContent = state.segments.length;
   if(!state.segments.length){
+    document.getElementById('segCount').textContent = '';
     box.innerHTML = emptyHtml('🎧','No transcript yet for this event','Run transcribe-audio on a real clip to populate this in real time.');
     return;
   }
-  box.innerHTML = state.segments.map(s=>`
+  const turns = groupIntoSpeakerTurns(state.segments);
+  document.getElementById('segCount').textContent = `${turns.length} speaker turns · ${state.segments.length} raw segments`;
+  box.innerHTML = turns.map(t=>`
     <div class="seg-row">
-      <div class="seg-time tabular">${msToClock(s.start_ms)}</div>
-      <div class="seg-speaker">${s.speaker_label || 'Unknown'}</div>
-      <div class="seg-text">${escapeHtml(s.text)}</div>
+      <div class="seg-time tabular">${msToClock(t.start_ms)}</div>
+      <div class="seg-speaker">${escapeHtml(t.speaker_label)}</div>
+      <div class="seg-text">${escapeHtml(t.text)}</div>
     </div>`).join('');
+}
+
+// Deepgram returns one row per short "utterance" (breaks on every pause),
+// which reads as choppy one-line fragments for real speech. Merge
+// consecutive same-speaker segments into a single readable paragraph,
+// starting a new one whenever the speaker changes or there's a long gap
+// (30s+) suggesting a different moment in the conversation.
+function groupIntoSpeakerTurns(segments){
+  const turns = [];
+  const GAP_BREAK_MS = 30000;
+  for(const s of segments){
+    const label = s.speaker_label || 'Unknown';
+    const last = turns[turns.length - 1];
+    const gap = last ? (s.start_ms - last.end_ms) : Infinity;
+    if(last && last.speaker_label === label && gap < GAP_BREAK_MS){
+      last.text += ' ' + s.text;
+      last.end_ms = s.end_ms;
+    }else{
+      turns.push({ speaker_label: label, start_ms: s.start_ms, end_ms: s.end_ms, text: s.text });
+    }
+  }
+  return turns;
 }
 
 async function loadShortlist(){
