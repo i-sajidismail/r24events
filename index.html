@@ -148,7 +148,7 @@
   .btn[disabled]{ opacity:.5; cursor:not-allowed; }
 
   /* ---------- Inputs ---------- */
-  input[type=text], input[type=search], select, textarea{
+  input[type=text], input[type=search], input[type=password], input[type=file], select, textarea{
     font-family:inherit; font-weight:300; font-size:15px; color:var(--ink);
     background:var(--canvas); border:1px solid var(--hairline-input); border-radius:6px;
     padding:8px 12px; outline:none;
@@ -222,6 +222,7 @@
     </div>
     <div class="nav-actions">
       <div class="nav-status"><span class="dot" id="statusDot"></span><span id="statusText">Supabase</span></div>
+      <div id="authArea"></div>
       <button class="btn btn-secondary btn-sm" onclick="location.reload()">Refresh</button>
     </div>
   </div>
@@ -261,11 +262,29 @@
       </div>
       <div id="ingestBody" style="display:none; margin-top:16px;">
         <div class="caption" style="margin-bottom:14px;">
-          Runs the real pipeline against the event selected above. You need a short (2–5 min) audio/video clip hosted at a public URL Deepgram can fetch directly (not a YouTube page — a direct .mp3/.mp4/.wav link), and your own Deepgram API key. The key is sent straight from your browser to the transcribe-audio function for this one request only; it is never stored anywhere.
+          Runs the real pipeline against the event selected above. Sign in below to upload a clip file directly (recommended), or paste a public audio/video URL Deepgram can fetch (not a YouTube page — a direct .mp3/.mp4/.wav link). You'll also need a Deepgram API key unless the project has a server-side one configured — the key you type here is sent straight from your browser to the function for this one request only; it is never stored anywhere by this app.
         </div>
+
+        <div id="uploadSignedOut" style="display:none; background:var(--canvas-soft); border-radius:8px; padding:16px; margin-bottom:16px;">
+          <div class="body-md" style="margin-bottom:10px;">Sign in to upload a clip file directly.</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('signInModalOverlay')">Sign in</button>
+        </div>
+
+        <div id="uploadSignedIn" style="display:none; background:var(--canvas-soft); border-radius:8px; padding:16px; margin-bottom:16px;">
+          <div class="section-title" style="margin-bottom:10px;">
+            <span class="body-md">Upload a clip file (up to 500MB)</span>
+            <span class="caption" id="uploadWho"></span>
+          </div>
+          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+            <input type="file" id="clipFile" accept="audio/*,video/*" />
+            <button class="btn btn-dark btn-sm" onclick="uploadClip()">Upload to Storage</button>
+          </div>
+          <div class="caption" id="uploadStatus" style="margin-top:8px; white-space:pre-wrap;"></div>
+        </div>
+
         <div class="grid" style="grid-template-columns:1fr 1fr; gap:12px;">
           <div class="field"><label>Deepgram API key (optional if a server secret is set)</label><input type="text" id="dgKey" placeholder="leave blank to use the project's DEEPGRAM_API_KEY secret" /></div>
-          <div class="field"><label>Public audio/video URL</label><input type="text" id="dgAudioUrl" placeholder="https://.../clip.mp3" /></div>
+          <div class="field"><label>Public audio/video URL (auto-filled after upload)</label><input type="text" id="dgAudioUrl" placeholder="https://.../clip.mp3" /></div>
         </div>
         <div class="grid" style="grid-template-columns:1fr 1fr; gap:12px;">
           <div class="field"><label>Deep-link back to source (optional)</label><input type="text" id="dgSourceUrl" placeholder="defaults to the event's source_url" /></div>
@@ -362,6 +381,20 @@
     <div class="modal-actions">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('watchlistModalOverlay')">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="submitWatchlist()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sign in modal -->
+<div class="modal-overlay" id="signInModalOverlay">
+  <div class="modal">
+    <h3 class="heading-md" style="margin-bottom:16px;">Sign in</h3>
+    <div class="field"><label>Email</label><input type="text" id="authEmail" autocomplete="username" /></div>
+    <div class="field"><label>Password</label><input type="password" id="authPassword" autocomplete="current-password" /></div>
+    <div class="caption" id="authError" style="color:var(--ruby); margin-bottom:4px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('signInModalOverlay')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitSignIn()">Sign in</button>
     </div>
   </div>
 </div>
@@ -595,6 +628,62 @@ async function advanceStage(id, current){
   loadPipeline();
 }
 
+// ---------- Auth ----------
+let currentSession = null;
+
+function renderAuthArea(){
+  const el = document.getElementById('authArea');
+  if(currentSession){
+    el.innerHTML = `<span class="caption" style="margin-right:8px;">${escapeHtml(currentSession.user.email)}</span><button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>`;
+  }else{
+    el.innerHTML = `<button class="btn btn-secondary btn-sm" onclick="openModal('signInModalOverlay')">Sign in</button>`;
+  }
+  document.getElementById('uploadSignedOut').style.display = currentSession ? 'none' : 'block';
+  document.getElementById('uploadSignedIn').style.display = currentSession ? 'block' : 'none';
+  if(currentSession) document.getElementById('uploadWho').textContent = 'signed in as ' + currentSession.user.email;
+}
+
+async function submitSignIn(){
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+  if(!email || !password){ errEl.textContent = 'Email and password are required.'; return; }
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
+  if(error){ errEl.textContent = error.message; return; }
+  currentSession = data.session;
+  closeModal('signInModalOverlay');
+  document.getElementById('authPassword').value = '';
+  renderAuthArea();
+  toast('Signed in');
+}
+
+async function signOut(){
+  await sb.auth.signOut();
+  currentSession = null;
+  renderAuthArea();
+  toast('Signed out');
+}
+
+// ---------- Clip upload (Supabase Storage) ----------
+async function uploadClip(){
+  const statusEl = document.getElementById('uploadStatus');
+  if(!currentSession){ statusEl.textContent = 'Sign in first.'; return; }
+  if(!state.currentEventId){ statusEl.textContent = 'Select an event first.'; return; }
+  const fileInput = document.getElementById('clipFile');
+  const file = fileInput.files[0];
+  if(!file){ statusEl.textContent = 'Choose a file first.'; return; }
+  statusEl.textContent = `Uploading ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)…`;
+  const path = `${state.currentEventId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+  const { error: upErr } = await sb.storage.from('session-clips').upload(path, file, { upsert: false });
+  if(upErr){ statusEl.textContent = 'Upload failed: ' + upErr.message; return; }
+  const { data: signed, error: signErr } = await sb.storage.from('session-clips').createSignedUrl(path, 3600);
+  if(signErr){ statusEl.textContent = 'Uploaded, but could not create a signed URL: ' + signErr.message; return; }
+  document.getElementById('dgAudioUrl').value = signed.signedUrl;
+  statusEl.textContent = `Uploaded. Signed URL (valid 1 hour) filled in below — click "1. Transcribe clip" when ready.`;
+  toast('Clip uploaded');
+}
+
 // ---------- Test ingestion ----------
 function toggleIngest(){
   const body = document.getElementById('ingestBody');
@@ -682,6 +771,10 @@ function emptyHtml(icon, title, sub){
 
 // ---------- Init ----------
 async function init(){
+  const { data: { session } } = await sb.auth.getSession();
+  currentSession = session;
+  renderAuthArea();
+  sb.auth.onAuthStateChange((_event, session) => { currentSession = session; renderAuthArea(); });
   await loadEvents();
   await Promise.all([loadSpeakers(), loadWatchlist(), loadPipeline()]);
   document.getElementById('lastSync').textContent = 'last synced ' + new Date().toLocaleTimeString();
