@@ -164,16 +164,15 @@
   }
   .tag.stage{ background:var(--canvas-cream); color:#8a5a1c; }
   .tag.type{ background:#e7effe; color:#2451a8; }
-  .tag.speaker-unassigned{ background:#fdeceb; color:var(--ruby); cursor:pointer; border:none; font-family:inherit; }
-  .tag.speaker-assigned{ background:var(--canvas-soft); color:var(--ink-secondary); border:1px solid var(--hairline); cursor:pointer; font-family:inherit; }
-  .tag.speaker-unassigned:hover, .tag.speaker-assigned:hover{ filter:brightness(0.97); }
+  .tag.speaker-unassigned{ cursor:pointer; border:1px dashed rgba(0,0,0,0.18); font-family:inherit; }
+  .tag.speaker-assigned{ cursor:pointer; border:none; font-family:inherit; }
+  .tag.speaker-unassigned:hover, .tag.speaker-assigned:hover{ filter:brightness(0.95); }
 
   /* ---------- Speaker legend ---------- */
   .speaker-legend{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--hairline); }
   .speaker-chip{ display:flex; align-items:center; gap:6px; border:1px solid var(--hairline); border-radius:9999px; padding:4px 10px 4px 4px; font-size:12px; background:var(--canvas-soft); cursor:pointer; font-family:inherit; }
   .speaker-chip:hover{ filter:brightness(0.97); }
-  .speaker-chip .avatar{ width:20px; height:20px; border-radius:50%; background:var(--primary-subdued); color:var(--primary-deep); font-size:9px; font-weight:600; display:flex; align-items:center; justify-content:center; flex:none; }
-  .speaker-chip.unassigned .avatar{ background:#fdeceb; color:var(--ruby); }
+  .speaker-chip .avatar{ width:20px; height:20px; border-radius:50%; font-size:9px; font-weight:600; display:flex; align-items:center; justify-content:center; flex:none; }
   .speaker-chip .label{ color:var(--ink-mute); font-size:10px; text-transform:uppercase; }
   .speaker-chip .name{ color:var(--ink); }
 
@@ -265,49 +264,6 @@
         <select id="eventSelect" style="min-width:320px;"></select>
       </div>
       <div class="caption" id="eventMeta">Loading event…</div>
-    </div>
-
-    <div class="card card-pad" style="margin-bottom:16px;">
-      <div class="section-title" style="margin-bottom:0; cursor:pointer;" onclick="toggleIngest()">
-        <h3 class="heading-md">Test ingestion (real clip)</h3>
-        <button class="btn btn-ghost btn-sm" id="ingestToggleBtn">Show ▾</button>
-      </div>
-      <div id="ingestBody" style="display:none; margin-top:16px;">
-        <div class="caption" style="margin-bottom:14px;">
-          Runs the real pipeline against the event selected above. Sign in below to upload a clip file directly (recommended), or paste a public audio/video URL Deepgram can fetch (not a YouTube page, a direct .mp3/.mp4/.wav link). You'll also need a Deepgram API key unless the project has a server-side one configured. The key you type here is sent straight from your browser to the function for this one request only; it is never stored anywhere by this app.
-        </div>
-
-        <div id="uploadSignedOut" style="display:none; background:var(--canvas-soft); border-radius:8px; padding:16px; margin-bottom:16px;">
-          <div class="body-md" style="margin-bottom:10px;">Sign in to upload a clip file directly.</div>
-          <button class="btn btn-primary btn-sm" onclick="openModal('signInModalOverlay')">Sign in</button>
-        </div>
-
-        <div id="uploadSignedIn" style="display:none; background:var(--canvas-soft); border-radius:8px; padding:16px; margin-bottom:16px;">
-          <div class="section-title" style="margin-bottom:10px;">
-            <span class="body-md">Upload a clip file (up to 500MB)</span>
-            <span class="caption" id="uploadWho"></span>
-          </div>
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-            <input type="file" id="clipFile" accept="audio/*,video/*" />
-            <button class="btn btn-dark btn-sm" onclick="uploadClip()">Upload to Storage</button>
-          </div>
-          <div class="caption" id="uploadStatus" style="margin-top:8px; white-space:pre-wrap;"></div>
-        </div>
-
-        <div class="grid" style="grid-template-columns:1fr 1fr; gap:12px;">
-          <div class="field"><label>Deepgram API key (optional if a server secret is set)</label><input type="text" id="dgKey" placeholder="leave blank to use the project's DEEPGRAM_API_KEY secret" /></div>
-          <div class="field"><label>Public audio/video URL (auto-filled after upload)</label><input type="text" id="dgAudioUrl" placeholder="https://.../clip.mp3" /></div>
-        </div>
-        <div class="grid" style="grid-template-columns:1fr 1fr; gap:12px;">
-          <div class="field"><label>Deep-link back to source (optional)</label><input type="text" id="dgSourceUrl" placeholder="defaults to the event's source_url" /></div>
-          <div class="field"><label>Clip offset in source video, seconds (optional)</label><input type="text" id="dgOffset" placeholder="0" /></div>
-        </div>
-        <div style="display:flex; gap:8px; margin-top:4px; flex-wrap:wrap;">
-          <button class="btn btn-primary btn-sm" onclick="runTranscribe()">1. Transcribe clip</button>
-          <button class="btn btn-dark btn-sm" onclick="runScore()">2. Score &amp; shortlist</button>
-        </div>
-        <div class="caption" id="ingestStatus" style="margin-top:12px; white-space:pre-wrap;"></div>
-      </div>
     </div>
 
     <div class="grid" style="grid-template-columns:1.4fr 1fr;">
@@ -507,11 +463,30 @@ function speakerDisplayName(rawLabel){
   return state.speakerAliases[rawLabel] || rawLabel;
 }
 
+// Give every distinct speaker in an event a consistent color, so you can
+// tell them apart at a glance while scrolling, whether or not they've
+// been assigned a real name yet.
+const SPEAKER_PALETTE = [
+  { bg:'#e9e6fd', fg:'#4434d4' }, // purple
+  { bg:'#e2effe', fg:'#1c5fa8' }, // blue
+  { bg:'#fdf1de', fg:'#8a5a1c' }, // amber
+  { bg:'#fdeaef', fg:'#b0295b' }, // rose
+  { bg:'#e2f6ea', fg:'#1f8a4c' }, // green
+  { bg:'#e2f5f5', fg:'#1c7a7a' }, // teal
+];
+function speakerColor(rawLabel){
+  let hash = 0;
+  const s = String(rawLabel || '');
+  for(let i=0;i<s.length;i++){ hash = (hash * 31 + s.charCodeAt(i)) >>> 0; }
+  return SPEAKER_PALETTE[hash % SPEAKER_PALETTE.length];
+}
+
 function speakerTagHtml(rawLabel){
   const assigned = !!state.speakerAliases[rawLabel];
   const cls = assigned ? 'speaker-assigned' : 'speaker-unassigned';
+  const c = speakerColor(rawLabel);
   const label = assigned ? speakerDisplayName(rawLabel) : `${escapeHtml(rawLabel)} ▾`;
-  return `<button type="button" class="tag ${cls}" onclick="openRenameSpeakerModal('${escapeAttr(rawLabel)}')">${assigned ? escapeHtml(label) : label}</button>`;
+  return `<button type="button" class="tag ${cls}" style="background:${c.bg};color:${c.fg};" onclick="openRenameSpeakerModal('${escapeAttr(rawLabel)}')">${assigned ? escapeHtml(label) : label}</button>`;
 }
 
 function renderSpeakerLegend(segments){
@@ -522,9 +497,10 @@ function renderSpeakerLegend(segments){
   box.innerHTML = rawLabels.map(label => {
     const assigned = !!state.speakerAliases[label];
     const initials = assigned ? initialsOf(speakerDisplayName(label)) : '?';
+    const c = speakerColor(label);
     return `
       <button type="button" class="speaker-chip ${assigned ? '' : 'unassigned'}" onclick="openRenameSpeakerModal('${escapeAttr(label)}')">
-        <span class="avatar">${escapeHtml(initials)}</span>
+        <span class="avatar" style="background:${c.bg};color:${c.fg};">${escapeHtml(initials)}</span>
         <span class="label">${escapeHtml(label)}</span>
         <span class="name">${assigned ? escapeHtml(speakerDisplayName(label)) : 'Assign name ▾'}</span>
       </button>`;
@@ -754,9 +730,6 @@ function renderAuthArea(){
   }else{
     el.innerHTML = `<button class="btn btn-secondary btn-sm" onclick="openModal('signInModalOverlay')">Sign in</button>`;
   }
-  document.getElementById('uploadSignedOut').style.display = currentSession ? 'none' : 'block';
-  document.getElementById('uploadSignedIn').style.display = currentSession ? 'block' : 'none';
-  if(currentSession) document.getElementById('uploadWho').textContent = 'signed in as ' + currentSession.user.email;
 }
 
 async function submitSignIn(){
@@ -781,95 +754,6 @@ async function signOut(){
   toast('Signed out');
 }
 
-// ---------- Clip upload (Supabase Storage) ----------
-async function uploadClip(){
-  const statusEl = document.getElementById('uploadStatus');
-  if(!currentSession){ statusEl.textContent = 'Sign in first.'; return; }
-  if(!state.currentEventId){ statusEl.textContent = 'Select an event first.'; return; }
-  const fileInput = document.getElementById('clipFile');
-  const file = fileInput.files[0];
-  if(!file){ statusEl.textContent = 'Choose a file first.'; return; }
-  statusEl.textContent = `Uploading ${file.name} (${(file.size/1024/1024).toFixed(1)} MB)…`;
-  const path = `${state.currentEventId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
-  const { error: upErr } = await sb.storage.from('session-clips').upload(path, file, { upsert: false });
-  if(upErr){ statusEl.textContent = 'Upload failed: ' + upErr.message; return; }
-  const { data: signed, error: signErr } = await sb.storage.from('session-clips').createSignedUrl(path, 3600);
-  if(signErr){ statusEl.textContent = 'Uploaded, but could not create a signed URL: ' + signErr.message; return; }
-  document.getElementById('dgAudioUrl').value = signed.signedUrl;
-  statusEl.textContent = `Uploaded. Signed URL (valid 1 hour) filled in below. Click "1. Transcribe clip" when ready.`;
-  toast('Clip uploaded');
-}
-
-// ---------- Test ingestion ----------
-function toggleIngest(){
-  const body = document.getElementById('ingestBody');
-  const open = body.style.display !== 'none';
-  body.style.display = open ? 'none' : 'block';
-  document.getElementById('ingestToggleBtn').textContent = open ? 'Show ▾' : 'Hide ▴';
-}
-function ingestLog(msg){
-  const el = document.getElementById('ingestStatus');
-  el.textContent = (el.textContent ? el.textContent + '\n' : '') + msg;
-}
-async function runTranscribe(){
-  const key = document.getElementById('dgKey').value.trim();
-  const audioUrl = document.getElementById('dgAudioUrl').value.trim();
-  if(!state.currentEventId){ ingestLog('Select an event first.'); return; }
-  if(!audioUrl){ ingestLog('Public audio/video URL is required.'); return; }
-  const ev = state.events.find(e=>e.id===state.currentEventId);
-  const sourceUrl = document.getElementById('dgSourceUrl').value.trim() || (ev ? ev.source_url : null);
-  const offset = Number(document.getElementById('dgOffset').value.trim() || 0);
-  ingestLog('Sending clip to Deepgram (nova-3, diarized)…');
-  try{
-    const headers = {
-      'Content-Type':'application/json',
-      'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-    };
-    if(key) headers['x-deepgram-key'] = key;
-    const resp = await fetch(`${SUPABASE_URL}/functions/v1/transcribe-audio`, {
-      method:'POST',
-      headers,
-      body: JSON.stringify({
-        event_id: state.currentEventId,
-        audio_url: audioUrl,
-        source_video_url: sourceUrl,
-        source_offset_seconds: offset
-      })
-    });
-    const json = await resp.json();
-    if(!resp.ok){ ingestLog('Error: ' + (json.error || resp.status) + (json.detail ? ': ' + json.detail : '')); return; }
-    ingestLog(`Inserted ${json.inserted} transcript segment(s). Now click "2. Score & shortlist".`);
-    toast('Transcript inserted');
-    loadTranscript();
-    document.getElementById('statSegments').textContent = state.segments.length;
-  }catch(err){
-    ingestLog('Network error calling transcribe-audio: ' + err.message);
-  }
-}
-async function runScore(){
-  if(!state.currentEventId){ ingestLog('Select an event first.'); return; }
-  ingestLog('Scoring transcript segments and building shortlist…');
-  try{
-    const resp = await fetch(`${SUPABASE_URL}/functions/v1/score-transcript`, {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY
-      },
-      body: JSON.stringify({ event_id: state.currentEventId })
-    });
-    const json = await resp.json();
-    if(!resp.ok){ ingestLog('Error: ' + (json.error || resp.status)); return; }
-    ingestLog(`Scored ${json.scored} segment(s), ${json.shortlisted} made the shortlist (score >= 55).`);
-    toast('Shortlist updated');
-    loadShortlist();
-    loadPipeline();
-  }catch(err){
-    ingestLog('Network error calling score-transcript: ' + err.message);
-  }
-}
 
 // ---------- Utils ----------
 function msToClock(ms){
