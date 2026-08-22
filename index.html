@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Relevant 24 — Events</title>
+<title>Relevant 24 - Events</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23533afd'/%3E%3Ctext x='16' y='22' font-family='Arial' font-weight='700' font-size='15' fill='white' text-anchor='middle'%3E24%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -164,6 +164,18 @@
   }
   .tag.stage{ background:var(--canvas-cream); color:#8a5a1c; }
   .tag.type{ background:#e7effe; color:#2451a8; }
+  .tag.speaker-unassigned{ background:#fdeceb; color:var(--ruby); cursor:pointer; border:none; font-family:inherit; }
+  .tag.speaker-assigned{ background:var(--canvas-soft); color:var(--ink-secondary); border:1px solid var(--hairline); cursor:pointer; font-family:inherit; }
+  .tag.speaker-unassigned:hover, .tag.speaker-assigned:hover{ filter:brightness(0.97); }
+
+  /* ---------- Speaker legend ---------- */
+  .speaker-legend{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--hairline); }
+  .speaker-chip{ display:flex; align-items:center; gap:6px; border:1px solid var(--hairline); border-radius:9999px; padding:4px 10px 4px 4px; font-size:12px; background:var(--canvas-soft); cursor:pointer; font-family:inherit; }
+  .speaker-chip:hover{ filter:brightness(0.97); }
+  .speaker-chip .avatar{ width:20px; height:20px; border-radius:50%; background:var(--primary-subdued); color:var(--primary-deep); font-size:9px; font-weight:600; display:flex; align-items:center; justify-content:center; flex:none; }
+  .speaker-chip.unassigned .avatar{ background:#fdeceb; color:var(--ruby); }
+  .speaker-chip .label{ color:var(--ink-mute); font-size:10px; text-transform:uppercase; }
+  .speaker-chip .name{ color:var(--ink); }
 
   /* ---------- Empty state ---------- */
   .empty{
@@ -175,7 +187,7 @@
   .seg-row{ display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--hairline); align-items:flex-start; cursor:pointer; }
   .seg-row:hover{ background:var(--canvas-soft); }
   .seg-time{ width:56px; flex:none; font-size:12px; color:var(--ink-mute); font-feature-settings:"tnum"; padding-top:2px;}
-  .seg-speaker{ width:120px; flex:none; font-size:13px; font-weight:500; color:var(--ink-secondary); }
+  .seg-speaker{ width:150px; flex:none; font-size:13px; font-weight:500; color:var(--ink-secondary); padding-top:1px; }
   .seg-text{ flex:1; font-size:15px; }
 
   table{ width:100%; border-collapse:collapse; }
@@ -262,7 +274,7 @@
       </div>
       <div id="ingestBody" style="display:none; margin-top:16px;">
         <div class="caption" style="margin-bottom:14px;">
-          Runs the real pipeline against the event selected above. Sign in below to upload a clip file directly (recommended), or paste a public audio/video URL Deepgram can fetch (not a YouTube page — a direct .mp3/.mp4/.wav link). You'll also need a Deepgram API key unless the project has a server-side one configured — the key you type here is sent straight from your browser to the function for this one request only; it is never stored anywhere by this app.
+          Runs the real pipeline against the event selected above. Sign in below to upload a clip file directly (recommended), or paste a public audio/video URL Deepgram can fetch (not a YouTube page, a direct .mp3/.mp4/.wav link). You'll also need a Deepgram API key unless the project has a server-side one configured. The key you type here is sent straight from your browser to the function for this one request only; it is never stored anywhere by this app.
         </div>
 
         <div id="uploadSignedOut" style="display:none; background:var(--canvas-soft); border-radius:8px; padding:16px; margin-bottom:16px;">
@@ -301,6 +313,7 @@
     <div class="grid" style="grid-template-columns:1.4fr 1fr;">
       <div class="card card-pad">
         <div class="section-title"><h3 class="heading-md">Transcript</h3><span class="micro-cap" id="segCount"></span></div>
+        <div id="speakerLegend" class="speaker-legend" style="display:none;"></div>
         <div id="transcriptList"></div>
       </div>
       <div class="card card-pad">
@@ -353,7 +366,7 @@
 
 </div>
 
-<div class="footer">Relevant 24 — Events · live data via Supabase (ap-south-1) · <span id="lastSync">syncing…</span></div>
+<div class="footer">Relevant 24 - Events · live data via Supabase (ap-south-1) · <span id="lastSync">syncing…</span></div>
 
 <!-- Speaker modal -->
 <div class="modal-overlay" id="speakerModalOverlay">
@@ -385,6 +398,22 @@
   </div>
 </div>
 
+<!-- Rename speaker modal -->
+<div class="modal-overlay" id="renameSpeakerModalOverlay">
+  <div class="modal">
+    <h3 class="heading-md" style="margin-bottom:4px;">Assign speaker name</h3>
+    <p class="caption" style="margin:0 0 16px 0;">Applies to every <span id="renameSpeakerRawLabel" class="tabular"></span> line in this event.</p>
+    <div class="field">
+      <label>Real name</label>
+      <input type="text" id="renameSpeakerName" placeholder="e.g. H.E. Dr. Sultan Al Jaber" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('renameSpeakerModalOverlay')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitRenameSpeaker()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Sign in modal -->
 <div class="modal-overlay" id="signInModalOverlay">
   <div class="modal">
@@ -406,7 +435,7 @@ const SUPABASE_URL = "https://cscyhgaoglubwpuhqnjv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_G_MTJPRf8Qf6SLm1gv6DxA_w4OWvxkM";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let state = { events:[], currentEventId:null, speakers:[], watchlist:[], segments:[], shortlist:[] };
+let state = { events:[], currentEventId:null, speakers:[], watchlist:[], segments:[], shortlist:[], speakerAliases:{}, renameTargetLabel:null };
 
 function toast(msg){
   const t = document.getElementById('toast');
@@ -461,16 +490,79 @@ function renderEventMeta(){
 
 async function refreshEventScoped(){
   renderEventMeta();
+  await loadSpeakerAliases();
   await Promise.all([loadTranscript(), loadShortlist()]);
+}
+
+// ---------- Speaker aliases (click a "Speaker N" tag to assign a real name) ----------
+async function loadSpeakerAliases(){
+  state.speakerAliases = {};
+  if(!state.currentEventId) return;
+  const { data, error } = await sb.from('speaker_aliases').select('*').eq('event_id', state.currentEventId);
+  if(error){ console.error(error); return; }
+  (data || []).forEach(row => { state.speakerAliases[row.raw_label] = row.display_name; });
+}
+
+function speakerDisplayName(rawLabel){
+  return state.speakerAliases[rawLabel] || rawLabel;
+}
+
+function speakerTagHtml(rawLabel){
+  const assigned = !!state.speakerAliases[rawLabel];
+  const cls = assigned ? 'speaker-assigned' : 'speaker-unassigned';
+  const label = assigned ? speakerDisplayName(rawLabel) : `${escapeHtml(rawLabel)} ▾`;
+  return `<button type="button" class="tag ${cls}" onclick="openRenameSpeakerModal('${escapeAttr(rawLabel)}')">${assigned ? escapeHtml(label) : label}</button>`;
+}
+
+function renderSpeakerLegend(segments){
+  const box = document.getElementById('speakerLegend');
+  const rawLabels = [...new Set(segments.map(s => s.speaker_label || 'Unknown'))];
+  if(!rawLabels.length){ box.style.display = 'none'; box.innerHTML = ''; return; }
+  box.style.display = 'flex';
+  box.innerHTML = rawLabels.map(label => {
+    const assigned = !!state.speakerAliases[label];
+    const initials = assigned ? initialsOf(speakerDisplayName(label)) : '?';
+    return `
+      <button type="button" class="speaker-chip ${assigned ? '' : 'unassigned'}" onclick="openRenameSpeakerModal('${escapeAttr(label)}')">
+        <span class="avatar">${escapeHtml(initials)}</span>
+        <span class="label">${escapeHtml(label)}</span>
+        <span class="name">${assigned ? escapeHtml(speakerDisplayName(label)) : 'Assign name ▾'}</span>
+      </button>`;
+  }).join('');
+}
+
+function initialsOf(name){
+  return name.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+}
+
+function openRenameSpeakerModal(rawLabel){
+  state.renameTargetLabel = rawLabel;
+  document.getElementById('renameSpeakerRawLabel').textContent = `"${rawLabel}"`;
+  document.getElementById('renameSpeakerName').value = state.speakerAliases[rawLabel] || '';
+  openModal('renameSpeakerModalOverlay');
+}
+
+async function submitRenameSpeaker(){
+  const name = document.getElementById('renameSpeakerName').value.trim();
+  const rawLabel = state.renameTargetLabel;
+  if(!name || !rawLabel || !state.currentEventId) { closeModal('renameSpeakerModalOverlay'); return; }
+  const { error } = await sb.from('speaker_aliases')
+    .upsert({ event_id: state.currentEventId, raw_label: rawLabel, display_name: name }, { onConflict: 'event_id,raw_label' });
+  if(error){ toast('Error saving speaker name'); console.error(error); return; }
+  state.speakerAliases[rawLabel] = name;
+  closeModal('renameSpeakerModalOverlay');
+  toast(`${rawLabel} → ${name}`);
+  loadTranscript();
 }
 
 async function loadTranscript(){
   const box = document.getElementById('transcriptList');
-  if(!state.currentEventId){ box.innerHTML = emptyHtml('📝','No event selected'); return; }
+  if(!state.currentEventId){ box.innerHTML = emptyHtml('📝','No event selected'); document.getElementById('speakerLegend').style.display='none'; return; }
   const { data, error } = await sb.from('transcript_segments').select('*').eq('event_id', state.currentEventId).order('start_ms');
   if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load transcript'); return; }
   state.segments = data || [];
   document.getElementById('statSegments').textContent = state.segments.length;
+  renderSpeakerLegend(state.segments);
   if(!state.segments.length){
     document.getElementById('segCount').textContent = '';
     box.innerHTML = emptyHtml('🎧','No transcript yet for this event','Run transcribe-audio on a real clip to populate this in real time.');
@@ -481,7 +573,7 @@ async function loadTranscript(){
   box.innerHTML = turns.map(t=>`
     <div class="seg-row">
       <div class="seg-time tabular">${msToClock(t.start_ms)}</div>
-      <div class="seg-speaker">${escapeHtml(t.speaker_label)}</div>
+      <div class="seg-speaker">${speakerTagHtml(t.speaker_label)}</div>
       <div class="seg-text">${escapeHtml(t.text)}</div>
     </div>`).join('');
 }
@@ -547,9 +639,9 @@ async function loadSpeakers(){
   rows.innerHTML = state.speakers.map(s=>`
     <tr>
       <td>${escapeHtml(s.name)}</td>
-      <td>${escapeHtml(s.role||'—')}</td>
-      <td>${escapeHtml(s.organization||'—')}</td>
-      <td>${s.is_priority ? '<span class="tag">priority</span>' : '<span class="caption">—</span>'}</td>
+      <td>${escapeHtml(s.role||'–')}</td>
+      <td>${escapeHtml(s.organization||'–')}</td>
+      <td>${s.is_priority ? '<span class="tag">priority</span>' : '<span class="caption">–</span>'}</td>
       <td><button class="btn btn-ghost btn-sm" onclick="deleteSpeaker('${s.id}')">Remove</button></td>
     </tr>`).join('');
 }
@@ -704,7 +796,7 @@ async function uploadClip(){
   const { data: signed, error: signErr } = await sb.storage.from('session-clips').createSignedUrl(path, 3600);
   if(signErr){ statusEl.textContent = 'Uploaded, but could not create a signed URL: ' + signErr.message; return; }
   document.getElementById('dgAudioUrl').value = signed.signedUrl;
-  statusEl.textContent = `Uploaded. Signed URL (valid 1 hour) filled in below — click "1. Transcribe clip" when ready.`;
+  statusEl.textContent = `Uploaded. Signed URL (valid 1 hour) filled in below. Click "1. Transcribe clip" when ready.`;
   toast('Clip uploaded');
 }
 
@@ -746,7 +838,7 @@ async function runTranscribe(){
       })
     });
     const json = await resp.json();
-    if(!resp.ok){ ingestLog('Error: ' + (json.error || resp.status) + (json.detail ? ' — ' + json.detail : '')); return; }
+    if(!resp.ok){ ingestLog('Error: ' + (json.error || resp.status) + (json.detail ? ': ' + json.detail : '')); return; }
     ingestLog(`Inserted ${json.inserted} transcript segment(s). Now click "2. Score & shortlist".`);
     toast('Transcript inserted');
     loadTranscript();
@@ -788,6 +880,14 @@ function msToClock(ms){
 function escapeHtml(str){
   if(str==null) return '';
   return str.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function escapeAttr(str){
+  if(str==null) return '';
+  // Safe to embed inside:  onclick="fn('VALUE')"
+  // First escape for the JS single-quoted string, then for the HTML double-quoted attribute.
+  return String(str)
+    .replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 function emptyHtml(icon, title, sub){
   return `<div class="empty"><div class="icon">${icon}</div><div class="body-md">${title}</div>${sub?`<div class="caption">${sub}</div>`:''}</div>`;
