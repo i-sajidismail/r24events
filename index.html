@@ -164,6 +164,10 @@
   }
   .tag.stage{ background:var(--canvas-cream); color:#8a5a1c; }
   .tag.type{ background:#e7effe; color:#2451a8; }
+  .tag.type.type-quote{ background:#e9e6fd; color:#4434d4; }
+  .tag.type.type-infographic{ background:#e2f6ea; color:#1f8a4c; }
+  .tag.type.type-conceptual_video{ background:#fdf1de; color:#8a5a1c; }
+  .tag.type.type-announcement{ background:#fdeaef; color:#b0295b; }
   .tag.speaker-unassigned{ cursor:pointer; border:1px dashed rgba(0,0,0,0.18); font-family:inherit; }
   .tag.speaker-assigned{ cursor:pointer; border:none; font-family:inherit; }
   .tag.speaker-unassigned:hover, .tag.speaker-assigned:hover{ filter:brightness(0.95); }
@@ -200,7 +204,12 @@
   .kanban-col h4{ font-size:12px; font-weight:500; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-mute); margin:4px 8px 12px 8px; }
   .kcard{ background:var(--canvas); border:1px solid var(--hairline); border-radius:8px; padding:12px; margin-bottom:8px; font-size:13px; box-shadow:0 1px 3px rgba(0,55,112,0.06); }
   .kcard .q{ font-size:13px; line-height:1.35; margin-bottom:8px; color:var(--ink); }
-  .kcard .meta{ display:flex; justify-content:space-between; align-items:center; }
+  .kcard .meta{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; }
+  .kcard .meta-left{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .kcard .type-select{ font-size:10px; padding:3px 6px; border-radius:9999px; border:1px solid var(--hairline-input); text-transform:uppercase; letter-spacing:0.1px; }
+  .kcard .actions{ display:flex; gap:6px; margin-top:10px; padding-top:10px; border-top:1px solid var(--hairline); }
+
+  #addToShortlistBtn{ position:absolute; z-index:40; display:none; box-shadow:0 4px 12px rgba(0,55,112,0.2); }
 
   .stat{ display:flex; flex-direction:column; gap:4px; }
   .stat .num{ font-size:32px; font-weight:300; letter-spacing:-0.5px; font-feature-settings:"tnum"; color:var(--ink); }
@@ -211,7 +220,7 @@
   .modal{ background:var(--canvas); border-radius:16px; padding:24px; width:420px; max-width:90vw; box-shadow:0 8px 24px rgba(0,55,112,0.16); }
   .field{ margin-bottom:14px; display:flex; flex-direction:column; gap:6px; }
   .field label{ font-size:12px; color:var(--ink-mute); }
-  .field input, .field select{ width:100%; }
+  .field input, .field select, .field textarea{ width:100%; font-family:inherit; resize:vertical; }
   .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
 
   .footer{ text-align:center; padding:32px; color:var(--ink-mute); font-size:12px; }
@@ -384,6 +393,29 @@
   </div>
 </div>
 
+<button class="btn btn-primary btn-sm" id="addToShortlistBtn" onclick="openManualShortlistModal()">+ Add to shortlist</button>
+
+<!-- Manual shortlist modal (from a transcript text selection) -->
+<div class="modal-overlay" id="manualShortlistModalOverlay">
+  <div class="modal">
+    <h3 class="heading-md" style="margin-bottom:4px;">Add to shortlist</h3>
+    <p class="caption" style="margin:0 0 16px 0;">From <span id="manualQuoteSpeaker" class="tabular"></span></p>
+    <div class="field"><label>Quote</label><textarea id="manualQuoteText" rows="4"></textarea></div>
+    <div class="field"><label>Format</label>
+      <select id="manualQuoteType">
+        <option value="quote">Quote</option>
+        <option value="infographic">Infographic</option>
+        <option value="conceptual_video">Conceptual Video</option>
+        <option value="announcement">Announcement</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('manualShortlistModalOverlay')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitManualShortlist()">Add</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -545,32 +577,109 @@ async function loadTranscript(){
     return;
   }
   const turns = groupIntoSpeakerTurns(state.segments);
+  state.turns = turns;
   document.getElementById('segCount').textContent = `${turns.length} speaker turns · ${state.segments.length} raw segments`;
-  box.innerHTML = turns.map(t=>`
-    <div class="seg-row">
+  box.innerHTML = turns.map((t,i)=>`
+    <div class="seg-row" data-turn-index="${i}" data-speaker="${escapeAttr(t.speaker_label)}" data-start-ms="${t.start_ms}" data-end-ms="${t.end_ms}">
       <div class="seg-time tabular">${msToClock(t.start_ms)}</div>
       <div class="seg-speaker">${speakerTagHtml(t.speaker_label)}</div>
       <div class="seg-text">${escapeHtml(t.text)}</div>
     </div>`).join('');
 }
 
+// ---------- Select part of a transcript turn to shortlist it manually ----------
+let pendingSelection = null;
+
+function initTranscriptSelection(){
+  const box = document.getElementById('transcriptList');
+  box.addEventListener('mouseup', ()=>{
+    setTimeout(()=>{
+      const sel = window.getSelection();
+      const text = sel ? sel.toString().trim() : '';
+      const btn = document.getElementById('addToShortlistBtn');
+      if(!text || text.length < 8 || sel.rangeCount === 0){ btn.style.display = 'none'; pendingSelection = null; return; }
+      const range = sel.getRangeAt(0);
+      const anchorEl = range.commonAncestorContainer.nodeType === 1 ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
+      const row = anchorEl ? anchorEl.closest('.seg-row') : null;
+      if(!row || !box.contains(row)){ btn.style.display = 'none'; pendingSelection = null; return; }
+      const rect = range.getBoundingClientRect();
+      pendingSelection = { text, speaker_label: row.dataset.speaker, start_ms: parseInt(row.dataset.startMs,10), end_ms: parseInt(row.dataset.endMs,10) };
+      btn.style.top = (rect.top + window.scrollY - 40) + 'px';
+      btn.style.left = (rect.left + window.scrollX) + 'px';
+      btn.style.display = 'inline-flex';
+    }, 0);
+  });
+  document.addEventListener('mousedown', (e)=>{
+    if(e.target.id !== 'addToShortlistBtn'){
+      const btn = document.getElementById('addToShortlistBtn');
+      if(btn && !btn.contains(e.target)) btn.style.display = 'none';
+    }
+  });
+}
+
+function openManualShortlistModal(){
+  if(!pendingSelection) return;
+  document.getElementById('addToShortlistBtn').style.display = 'none';
+  document.getElementById('manualQuoteText').value = pendingSelection.text;
+  document.getElementById('manualQuoteSpeaker').textContent = speakerDisplayName(pendingSelection.speaker_label) || pendingSelection.speaker_label;
+  document.getElementById('manualQuoteType').value = 'quote';
+  openModal('manualShortlistModalOverlay');
+}
+
+async function submitManualShortlist(){
+  if(!pendingSelection || !state.currentEventId){ closeModal('manualShortlistModalOverlay'); return; }
+  const quote = document.getElementById('manualQuoteText').value.trim();
+  if(!quote){ toast('Quote text is required'); return; }
+  const content_type = document.getElementById('manualQuoteType').value;
+  const payload = {
+    event_id: state.currentEventId,
+    transcript_segment_id: null,
+    quote,
+    suggested_content_type: content_type,
+    content_type,
+    score: 100,
+    matched_watchlist: [],
+    stage: 'flagged',
+    source_link: null,
+    speaker_label: pendingSelection.speaker_label,
+    start_ms: pendingSelection.start_ms,
+    end_ms: pendingSelection.end_ms,
+    is_manual: true,
+  };
+  const { error } = await sb.from('shortlist_items').insert(payload);
+  if(error){ toast('Error adding to shortlist'); console.error(error); return; }
+  closeModal('manualShortlistModalOverlay');
+  pendingSelection = null;
+  window.getSelection().removeAllRanges();
+  toast('Added to shortlist');
+  loadShortlist();
+}
+
 // Deepgram returns one row per short "utterance" (breaks on every pause),
 // which reads as choppy one-line fragments for real speech. Merge
 // consecutive same-speaker segments into a single readable paragraph,
-// starting a new one whenever the speaker changes or there's a long gap
-// (30s+) suggesting a different moment in the conversation.
+// starting a new one whenever the speaker changes, there's a long gap
+// (30s+) suggesting a different moment in the conversation, or the current
+// paragraph has grown long enough (60s / ~700 characters) that it reads as
+// one huge wall of text - a real monologue can run many minutes, so this
+// keeps it broken into scannable chunks without losing the speaker tag.
 function groupIntoSpeakerTurns(segments){
   const turns = [];
   const GAP_BREAK_MS = 30000;
+  const MAX_TURN_MS = 60000;
+  const MAX_TURN_CHARS = 700;
   for(const s of segments){
     const label = s.speaker_label || 'Unknown';
     const last = turns[turns.length - 1];
     const gap = last ? (s.start_ms - last.end_ms) : Infinity;
-    if(last && last.speaker_label === label && gap < GAP_BREAK_MS){
+    const sameSpeaker = last && last.speaker_label === label && gap < GAP_BREAK_MS;
+    const tooLong = sameSpeaker && ((s.end_ms - last.start_ms) > MAX_TURN_MS || (last.text.length + s.text.length) > MAX_TURN_CHARS);
+    if(sameSpeaker && !tooLong){
       last.text += ' ' + s.text;
       last.end_ms = s.end_ms;
+      last.segIds.push(s.id);
     }else{
-      turns.push({ speaker_label: label, start_ms: s.start_ms, end_ms: s.end_ms, text: s.text });
+      turns.push({ speaker_label: label, start_ms: s.start_ms, end_ms: s.end_ms, text: s.text, segIds:[s.id] });
     }
   }
   return turns;
@@ -593,16 +702,61 @@ async function loadShortlist(){
     box.innerHTML = emptyHtml('✨','Shortlist is empty','score-transcript will populate this once a clip is transcribed.');
     return;
   }
-  box.innerHTML = items.map(it=>`
+  box.innerHTML = items.map(it=>shortlistCardHtml(it)).join('');
+}
+document.getElementById('sortShortlist').addEventListener('change', loadShortlist);
+
+const CONTENT_TYPES = [
+  ['quote','Quote'], ['infographic','Infographic'], ['conceptual_video','Conceptual Video'], ['announcement','Announcement']
+];
+function contentTypeLabel(val){
+  const found = CONTENT_TYPES.find(([v])=>v===val);
+  return found ? found[1] : (val || 'Quote');
+}
+
+function shortlistCardHtml(it){
+  const type = it.content_type || it.suggested_content_type || 'quote';
+  const speakerLabel = it.speaker_label;
+  return `
     <div class="kcard">
       <div class="q">"${escapeHtml(it.quote)}"</div>
       <div class="meta">
-        <span class="tag type">${it.content_type || it.suggested_content_type}</span>
+        <div class="meta-left">
+          ${speakerLabel ? speakerTagHtml(speakerLabel) : ''}
+          <select class="type-select" onchange="updateShortlistType('${it.id}', this.value)">
+            ${CONTENT_TYPES.map(([val,label])=>`<option value="${val}" ${val===type?'selected':''}>${label}</option>`).join('')}
+          </select>
+        </div>
         <span class="caption tabular">score ${it.score ?? '–'}</span>
       </div>
-    </div>`).join('');
+      <div class="actions">
+        <button class="btn btn-ghost btn-sm" onclick="pushToProduction('${it.id}')">Push to production →</button>
+        <button class="btn btn-ghost btn-sm" onclick="discardShortlistItem('${it.id}')">Discard</button>
+      </div>
+    </div>`;
 }
-document.getElementById('sortShortlist').addEventListener('change', loadShortlist);
+
+async function updateShortlistType(id, content_type){
+  const { error } = await sb.from('shortlist_items').update({ content_type }).eq('id', id);
+  if(error){ toast('Error updating format'); console.error(error); return; }
+  const item = state.shortlist.find(i=>i.id===id);
+  if(item) item.content_type = content_type;
+  toast('Format updated');
+}
+
+async function pushToProduction(id){
+  const { error } = await sb.from('shortlist_items').update({ stage: 'in_review' }).eq('id', id);
+  if(error){ toast('Error pushing to production'); console.error(error); return; }
+  toast('Sent to Production Pipeline');
+  loadShortlist();
+}
+
+async function discardShortlistItem(id){
+  const { error } = await sb.from('shortlist_items').delete().eq('id', id);
+  if(error){ toast('Error discarding item'); console.error(error); return; }
+  toast('Item discarded');
+  loadShortlist();
+}
 
 async function loadSpeakers(){
   const { data, error } = await sb.from('speakers').select('*').order('created_at');
@@ -702,7 +856,10 @@ async function loadPipeline(){
         <div class="kcard">
           <div class="q">"${escapeHtml(it.quote)}"</div>
           <div class="meta">
-            <span class="tag type">${it.content_type || it.suggested_content_type}</span>
+            <div class="meta-left">
+              ${it.speaker_label ? `<span class="tag">${escapeHtml(speakerDisplayName(it.speaker_label))}</span>` : ''}
+              <span class="tag type type-${it.content_type || it.suggested_content_type}">${contentTypeLabel(it.content_type || it.suggested_content_type)}</span>
+            </div>
             ${key!=='published' ? `<button class="btn btn-ghost btn-sm" onclick="advanceStage('${it.id}','${key}')">Advance →</button>` : ''}
           </div>
         </div>`).join('') : `<div class="caption" style="padding:8px;">Empty</div>`}
@@ -783,6 +940,7 @@ async function init(){
   currentSession = session;
   renderAuthArea();
   sb.auth.onAuthStateChange((_event, session) => { currentSession = session; renderAuthArea(); });
+  initTranscriptSelection();
   await loadEvents();
   await Promise.all([loadSpeakers(), loadWatchlist(), loadPipeline()]);
   document.getElementById('lastSync').textContent = 'last synced ' + new Date().toLocaleTimeString();
