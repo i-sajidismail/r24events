@@ -208,7 +208,7 @@
   .kcard .meta-left{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .kcard .type-select{ font-size:10px; padding:3px 6px; border-radius:9999px; border:1px solid var(--hairline-input); text-transform:uppercase; letter-spacing:0.1px; }
   .kcard .actions{ display:flex; gap:6px; margin-top:10px; padding-top:10px; border-top:1px solid var(--hairline); }
-  .note-field{ width:100%; min-height:40px; font-size:12px; padding:6px 8px; margin-top:8px; background:var(--canvas-cream); border:1px dashed var(--hairline-input); border-radius:6px; color:var(--ink-secondary); }
+  .note-field{ width:100%; min-height:40px; font-size:12px; padding:6px 8px; margin-top:8px; background:var(--canvas-soft); border:1px dashed var(--hairline-input); border-radius:6px; color:var(--ink-secondary); }
   .note-field::placeholder{ color:var(--ink-mute); }
 
   #addToShortlistBtn{ position:absolute; z-index:40; display:none; box-shadow:0 4px 12px rgba(0,55,112,0.2); }
@@ -413,7 +413,7 @@
     </div>
     <div class="field"><label>Note for your team (optional)</label><textarea id="manualQuoteNotes" rows="2" placeholder="e.g. Use for the opening hook, pair with drone b-roll..."></textarea></div>
     <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('manualShortlistModalOverlay')">Cancel</button>
+      <button class="btn btn-ghost btn-sm" onclick="cancelManualShortlist()">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="submitManualShortlist()">Add</button>
     </div>
   </div>
@@ -660,6 +660,7 @@ function initTranscriptSelection(){
         mixedSpeakers: labels.length > 1 ? labels : null,
         start_ms: parseInt(firstRow.dataset.startMs,10),
         end_ms: parseInt(lastRow.dataset.endMs,10),
+        range: range.cloneRange(),
       };
       btn.style.top = (rect.top + window.scrollY - 40) + 'px';
       btn.style.left = (rect.left + window.scrollX) + 'px';
@@ -667,11 +668,34 @@ function initTranscriptSelection(){
     }, 0);
   });
   document.addEventListener('mousedown', (e)=>{
-    if(e.target.id !== 'addToShortlistBtn'){
+    // Don't hide the button for a click that's about to reopen the modal on
+    // the same pending selection (e.g. clicking Cancel then re-clicking Add).
+    if(e.target.id !== 'addToShortlistBtn' && !document.getElementById('manualShortlistModalOverlay').classList.contains('open')){
       const btn = document.getElementById('addToShortlistBtn');
       if(btn && !btn.contains(e.target)) btn.style.display = 'none';
     }
   });
+}
+
+// Clicking anywhere to open/interact with the modal collapses the browser's
+// own text selection. Cancelling out of the modal should give the editor
+// their highlighted selection back, exactly as they left it, rather than
+// making them re-select it from scratch.
+function restorePendingSelection(){
+  if(!pendingSelection || !pendingSelection.range) return;
+  const sel = window.getSelection();
+  sel.removeAllRanges();
+  sel.addRange(pendingSelection.range);
+  const rect = pendingSelection.range.getBoundingClientRect();
+  const btn = document.getElementById('addToShortlistBtn');
+  btn.style.top = (rect.top + window.scrollY - 40) + 'px';
+  btn.style.left = (rect.left + window.scrollX) + 'px';
+  btn.style.display = 'inline-flex';
+}
+
+function cancelManualShortlist(){
+  closeModal('manualShortlistModalOverlay');
+  restorePendingSelection();
 }
 
 function openManualShortlistModal(){
