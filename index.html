@@ -208,6 +208,8 @@
   .kcard .meta-left{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
   .kcard .type-select{ font-size:10px; padding:3px 6px; border-radius:9999px; border:1px solid var(--hairline-input); text-transform:uppercase; letter-spacing:0.1px; }
   .kcard .actions{ display:flex; gap:6px; margin-top:10px; padding-top:10px; border-top:1px solid var(--hairline); }
+  .note-field{ width:100%; min-height:40px; font-size:12px; padding:6px 8px; margin-top:8px; background:var(--canvas-cream); border:1px dashed var(--hairline-input); border-radius:6px; color:var(--ink-secondary); }
+  .note-field::placeholder{ color:var(--ink-mute); }
 
   #addToShortlistBtn{ position:absolute; z-index:40; display:none; box-shadow:0 4px 12px rgba(0,55,112,0.2); }
 
@@ -409,6 +411,7 @@
         <option value="announcement">Announcement</option>
       </select>
     </div>
+    <div class="field"><label>Note for your team (optional)</label><textarea id="manualQuoteNotes" rows="2" placeholder="e.g. Use for the opening hook, pair with drone b-roll..."></textarea></div>
     <div class="modal-actions">
       <button class="btn btn-ghost btn-sm" onclick="closeModal('manualShortlistModalOverlay')">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="submitManualShortlist()">Add</button>
@@ -560,7 +563,10 @@ async function submitRenameSpeaker(){
   state.speakerAliases[rawLabel] = name;
   closeModal('renameSpeakerModalOverlay');
   toast(`${rawLabel} → ${name}`);
-  loadTranscript();
+  // The AI Shortlist panel and Production Pipeline board also show this
+  // speaker's tag (from shortlist_items.speaker_label), so they need to
+  // re-render too, not just the transcript.
+  await Promise.all([loadTranscript(), loadShortlist(), loadPipeline()]);
 }
 
 async function loadTranscript(){
@@ -590,20 +596,40 @@ async function loadTranscript(){
 // ---------- Select part of a transcript turn to shortlist it manually ----------
 let pendingSelection = null;
 
+function findSegRow(node){
+  const el = node && node.nodeType === 1 ? node : (node ? node.parentElement : null);
+  return el ? el.closest('.seg-row') : null;
+}
+
 function initTranscriptSelection(){
   const box = document.getElementById('transcriptList');
   box.addEventListener('mouseup', ()=>{
     setTimeout(()=>{
       const sel = window.getSelection();
-      const text = sel ? sel.toString().trim() : '';
+      let text = sel ? sel.toString() : '';
+      text = text.replace(/\s+/g, ' ').trim();
       const btn = document.getElementById('addToShortlistBtn');
       if(!text || text.length < 8 || sel.rangeCount === 0){ btn.style.display = 'none'; pendingSelection = null; return; }
       const range = sel.getRangeAt(0);
-      const anchorEl = range.commonAncestorContainer.nodeType === 1 ? range.commonAncestorContainer : range.commonAncestorContainer.parentElement;
-      const row = anchorEl ? anchorEl.closest('.seg-row') : null;
-      if(!row || !box.contains(row)){ btn.style.display = 'none'; pendingSelection = null; return; }
+      // A selection can span multiple transcript paragraphs (chunks) - find
+      // the row at each end of the range rather than assuming one row.
+      const startRow = findSegRow(range.startContainer);
+      const endRow = findSegRow(range.endContainer);
+      if(!startRow || !endRow || !box.contains(startRow) || !box.contains(endRow)){ btn.style.display = 'none'; pendingSelection = null; return; }
+      const startIdx = parseInt(startRow.dataset.turnIndex,10);
+      const endIdx = parseInt(endRow.dataset.turnIndex,10);
+      const firstRow = startIdx <= endIdx ? startRow : endRow;
+      const lastRow = startIdx <= endIdx ? endRow : startRow;
+      const labels = [...new Set([firstRow.dataset.speaker, lastRow.dataset.speaker])];
+      const speakerLabel = labels.length === 1 ? labels[0] : null;
       const rect = range.getBoundingClientRect();
-      pendingSelection = { text, speaker_label: row.dataset.speaker, start_ms: parseInt(row.dataset.startMs,10), end_ms: parseInt(row.dataset.endMs,10) };
+      pendingSelection = {
+        text,
+        speaker_label: speakerLabel,
+        mixedSpeakers: labels.length > 1 ? labels : null,
+        start_ms: parseInt(firstRow.dataset.startMs,10),
+        end_ms: parseInt(lastRow.dataset.endMs,10),
+      };
       btn.style.top = (rect.top + window.scrollY - 40) + 'px';
       btn.style.left = (rect.left + window.scrollX) + 'px';
       btn.style.display = 'inline-flex';
@@ -621,8 +647,11 @@ function openManualShortlistModal(){
   if(!pendingSelection) return;
   document.getElementById('addToShortlistBtn').style.display = 'none';
   document.getElementById('manualQuoteText').value = pendingSelection.text;
-  document.getElementById('manualQuoteSpeaker').textContent = speakerDisplayName(pendingSelection.speaker_label) || pendingSelection.speaker_label;
+  document.getElementById('manualQuoteSpeaker').textContent = pendingSelection.mixedSpeakers
+    ? pendingSelection.mixedSpeakers.map(l=>speakerDisplayName(l)||l).join(' & ')
+    : (speakerDisplayName(pendingSelection.speaker_label) || pendingSelection.speaker_label);
   document.getElementById('manualQuoteType').value = 'quote';
+  document.getElementById('manualQuoteNotes').value = '';
   openModal('manualShortlistModalOverlay');
 }
 
@@ -631,6 +660,8 @@ async function submitManualShortlist(){
   const quote = document.getElementById('manualQuoteText').value.trim();
   if(!quote){ toast('Quote text is required'); return; }
   const content_type = document.getElementById('manualQuoteType').value;
+  const notes = document.getElementById('manualQuoteNotes').value.trim();
+  const speakerLabel = pendingSelection.mixedSpeakers ? pendingSelection.mixedSpeakers.join(' & ') : pendingSelection.speaker_label;
   const payload = {
     event_id: state.currentEventId,
     transcript_segment_id: null,
@@ -641,10 +672,11 @@ async function submitManualShortlist(){
     matched_watchlist: [],
     stage: 'flagged',
     source_link: null,
-    speaker_label: pendingSelection.speaker_label,
+    speaker_label: speakerLabel,
     start_ms: pendingSelection.start_ms,
     end_ms: pendingSelection.end_ms,
     is_manual: true,
+    notes: notes || null,
   };
   const { error } = await sb.from('shortlist_items').insert(payload);
   if(error){ toast('Error adding to shortlist'); console.error(error); return; }
@@ -663,6 +695,10 @@ async function submitManualShortlist(){
 // paragraph has grown long enough (60s / ~700 characters) that it reads as
 // one huge wall of text - a real monologue can run many minutes, so this
 // keeps it broken into scannable chunks without losing the speaker tag.
+function endsCompleteSentence(text){
+  return /[.!?]["'\)\]]?$/.test(text.trim());
+}
+
 function groupIntoSpeakerTurns(segments){
   const turns = [];
   const GAP_BREAK_MS = 30000;
@@ -673,8 +709,13 @@ function groupIntoSpeakerTurns(segments){
     const last = turns[turns.length - 1];
     const gap = last ? (s.start_ms - last.end_ms) : Infinity;
     const sameSpeaker = last && last.speaker_label === label && gap < GAP_BREAK_MS;
-    const tooLong = sameSpeaker && ((s.end_ms - last.start_ms) > MAX_TURN_MS || (last.text.length + s.text.length) > MAX_TURN_CHARS);
-    if(sameSpeaker && !tooLong){
+    // Only ever break a paragraph once the text so far ends on a real
+    // sentence boundary - otherwise a 60s/700-char break would land
+    // mid-sentence and make it impossible to select a full sentence (or
+    // several) that happens to straddle that cutoff.
+    const overSoftLimit = sameSpeaker && ((s.end_ms - last.start_ms) > MAX_TURN_MS || (last.text.length + s.text.length) > MAX_TURN_CHARS);
+    const canBreakHere = sameSpeaker && overSoftLimit && endsCompleteSentence(last.text);
+    if(sameSpeaker && !canBreakHere){
       last.text += ' ' + s.text;
       last.end_ms = s.end_ms;
       last.segIds.push(s.id);
@@ -729,6 +770,7 @@ function shortlistCardHtml(it){
         </div>
         <span class="caption tabular">score ${it.score ?? '–'}</span>
       </div>
+      <textarea class="note-field" placeholder="Add a note for your team..." onblur="updateShortlistNotes('${it.id}', this.value)">${escapeHtml(it.notes||'')}</textarea>
       <div class="actions">
         <button class="btn btn-ghost btn-sm" onclick="pushToProduction('${it.id}')">Push to production →</button>
         <button class="btn btn-ghost btn-sm" onclick="discardShortlistItem('${it.id}')">Discard</button>
@@ -742,6 +784,16 @@ async function updateShortlistType(id, content_type){
   const item = state.shortlist.find(i=>i.id===id);
   if(item) item.content_type = content_type;
   toast('Format updated');
+}
+
+async function updateShortlistNotes(id, notes){
+  const trimmed = notes.trim();
+  const item = state.shortlist.find(i=>i.id===id);
+  if(item && (item.notes||'') === trimmed) return; // no change, skip the write
+  const { error } = await sb.from('shortlist_items').update({ notes: trimmed || null }).eq('id', id);
+  if(error){ toast('Error saving note'); console.error(error); return; }
+  if(item) item.notes = trimmed;
+  toast('Note saved');
 }
 
 async function pushToProduction(id){
@@ -862,6 +914,7 @@ async function loadPipeline(){
             </div>
             ${key!=='published' ? `<button class="btn btn-ghost btn-sm" onclick="advanceStage('${it.id}','${key}')">Advance →</button>` : ''}
           </div>
+          ${it.notes ? `<div class="note-field" style="border-style:solid; cursor:default;">${escapeHtml(it.notes)}</div>` : ''}
         </div>`).join('') : `<div class="caption" style="padding:8px;">Empty</div>`}
     </div>`;
   }).join('');
