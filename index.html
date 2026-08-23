@@ -601,15 +601,39 @@ function findSegRow(node){
   return el ? el.closest('.seg-row') : null;
 }
 
+// Extract just the spoken text a selection covers, row by row - never the
+// timestamp or speaker-tag markup that sits alongside it in the DOM, which
+// a naive range.toString() would otherwise pull in for a multi-row selection.
+function quoteTextFromSelection(range, rows){
+  return rows.map(row=>{
+    const segText = row.querySelector('.seg-text');
+    if(!segText) return '';
+    const startsHere = segText.contains(range.startContainer);
+    const endsHere = segText.contains(range.endContainer);
+    if(startsHere && endsHere) return range.toString();
+    if(startsHere){
+      const r = document.createRange();
+      r.setStart(range.startContainer, range.startOffset);
+      r.setEnd(segText, segText.childNodes.length);
+      return r.toString();
+    }
+    if(endsHere){
+      const r = document.createRange();
+      r.setStart(segText, 0);
+      r.setEnd(range.endContainer, range.endOffset);
+      return r.toString();
+    }
+    return segText.textContent;
+  }).join(' ').replace(/\s+/g, ' ').trim();
+}
+
 function initTranscriptSelection(){
   const box = document.getElementById('transcriptList');
   box.addEventListener('mouseup', ()=>{
     setTimeout(()=>{
       const sel = window.getSelection();
-      let text = sel ? sel.toString() : '';
-      text = text.replace(/\s+/g, ' ').trim();
       const btn = document.getElementById('addToShortlistBtn');
-      if(!text || text.length < 8 || sel.rangeCount === 0){ btn.style.display = 'none'; pendingSelection = null; return; }
+      if(!sel || sel.isCollapsed || sel.rangeCount === 0){ btn.style.display = 'none'; pendingSelection = null; return; }
       const range = sel.getRangeAt(0);
       // A selection can span multiple transcript paragraphs (chunks) - find
       // the row at each end of the range rather than assuming one row.
@@ -620,6 +644,13 @@ function initTranscriptSelection(){
       const endIdx = parseInt(endRow.dataset.turnIndex,10);
       const firstRow = startIdx <= endIdx ? startRow : endRow;
       const lastRow = startIdx <= endIdx ? endRow : startRow;
+      const lo = Math.min(startIdx, endIdx), hi = Math.max(startIdx, endIdx);
+      const spannedRows = Array.from(box.querySelectorAll('.seg-row')).filter(r=>{
+        const idx = parseInt(r.dataset.turnIndex,10);
+        return idx >= lo && idx <= hi;
+      });
+      const text = quoteTextFromSelection(range, spannedRows);
+      if(!text || text.length < 8){ btn.style.display = 'none'; pendingSelection = null; return; }
       const labels = [...new Set([firstRow.dataset.speaker, lastRow.dataset.speaker])];
       const speakerLabel = labels.length === 1 ? labels[0] : null;
       const rect = range.getBoundingClientRect();
