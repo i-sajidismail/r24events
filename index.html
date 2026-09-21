@@ -10,326 +10,355 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-  :root{
-    --primary:#533afd;
-    --primary-deep:#4434d4;
-    --primary-press:#2e2b8c;
-    --primary-soft:#665efd;
-    --primary-subdued:#b9b9f9;
-    --brand-dark-900:#1c1e54;
-    --ink:#0d253d;
-    --ink-secondary:#273951;
-    --ink-mute:#64748d;
-    --ink-mute-2:#61718a;
-    --on-primary:#ffffff;
-    --canvas:#ffffff;
-    --canvas-soft:#f6f9fc;
-    --canvas-cream:#f5e9d4;
-    --hairline:#e3e8ee;
-    --hairline-input:#a8c3de;
-    --ruby:#ea2261;
-    --magenta:#f96bee;
-    --lemon:#9b6829;
-    --shadow-blue:#003770;
-    --r-xs:4px; --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px; --r-pill:9999px;
-    --sp-xxs:2px; --sp-xs:4px; --sp-sm:8px; --sp-md:12px; --sp-lg:16px; --sp-xl:24px; --sp-xxl:32px; --sp-huge:64px;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    font-family:'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
-    font-weight:300;
-    font-feature-settings:"ss01";
-    color:var(--ink);
-    background:var(--canvas-soft);
-    -webkit-font-smoothing:antialiased;
-  }
-  .tabular{ font-feature-settings:"tnum"; letter-spacing:-0.42px; }
-  a{ color:var(--primary); text-decoration:none; }
-  a:hover{ text-decoration:underline; }
+:root{
+--primary:#533afd;
+--primary-deep:#4434d4;
+--primary-press:#2e2b8c;
+--primary-soft:#665efd;
+--primary-subdued:#b9b9f9;
+--brand-dark-900:#1c1e54;
+--ink:#0d253d;
+--ink-secondary:#273951;
+--ink-mute:#64748d;
+--ink-mute-2:#61718a;
+--on-primary:#ffffff;
+--canvas:#ffffff;
+--canvas-soft:#f6f9fc;
+--canvas-cream:#f5e9d4;
+--hairline:#e3e8ee;
+--hairline-input:#a8c3de;
+--ruby:#ea2261;
+--magenta:#f96bee;
+--lemon:#9b6829;
+--shadow-blue:#003770;
+--r-xs:4px; --r-sm:6px; --r-md:8px; --r-lg:12px; --r-xl:16px; --r-pill:9999px;
+--sp-xxs:2px; --sp-xs:4px; --sp-sm:8px; --sp-md:12px; --sp-lg:16px; --sp-xl:24px; --sp-xxl:32px; --sp-huge:64px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+font-family:'Inter', 'SF Pro Display', system-ui, -apple-system, sans-serif;
+font-weight:300;
+font-feature-settings:"ss01";
+color:var(--ink);
+background:var(--canvas-soft);
+-webkit-font-smoothing:antialiased;
+}
+.tabular{ font-feature-settings:"tnum"; letter-spacing:-0.42px; }
+a{ color:var(--primary); text-decoration:none; }
+a:hover{ text-decoration:underline; }
 
-  /* ---------- Gradient mesh hero ---------- */
-  .mesh-hero{
-    position:relative;
-    overflow:hidden;
-    background:linear-gradient(115deg, var(--canvas-cream) 0%, #f6cf9b 16%, #d9c2f0 34%, var(--primary-soft) 55%, var(--primary) 72%, var(--ruby) 100%);
-    padding-bottom:56px;
-  }
-  .mesh-hero::before{
-    content:"";
-    position:absolute; inset:0;
-    background:
-      radial-gradient(60% 80% at 15% 10%, rgba(245,233,212,0.9), transparent 60%),
-      radial-gradient(50% 70% at 70% 0%, rgba(102,94,253,0.55), transparent 55%),
-      radial-gradient(45% 60% at 95% 40%, rgba(234,34,97,0.45), transparent 60%);
-    filter: blur(20px);
-    opacity:0.9;
-  }
-  .mesh-hero > *{ position:relative; z-index:1; }
+/* ---------- Gradient mesh hero ---------- */
+.mesh-hero{
+position:relative;
+overflow:hidden;
+background:linear-gradient(115deg, var(--canvas-cream) 0%, #f6cf9b 16%, #d9c2f0 34%, var(--primary-soft) 55%, var(--primary) 72%, var(--ruby) 100%);
+padding-bottom:56px;
+}
+.mesh-hero::before{
+content:"";
+position:absolute; inset:0;
+background:
+radial-gradient(60% 80% at 15% 10%, rgba(245,233,212,0.9), transparent 60%),
+radial-gradient(50% 70% at 70% 0%, rgba(102,94,253,0.55), transparent 55%),
+radial-gradient(45% 60% at 95% 40%, rgba(234,34,97,0.45), transparent 60%);
+filter: blur(20px);
+opacity:0.9;
+}
+.mesh-hero > *{ position:relative; z-index:1; }
 
-  /* ---------- Nav ---------- */
-  .nav-bar{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:16px 24px;
-    background:var(--canvas);
-    border-radius:4px;
-    margin:20px 24px 0 24px;
-  }
-  .brand{ display:flex; align-items:center; gap:10px; }
-  .brand-mark{
-    width:34px; height:34px; border-radius:9px;
-    background:var(--primary);
-    display:flex; align-items:center; justify-content:center;
-    color:#fff; font-weight:600; font-size:15px; letter-spacing:-0.5px;
-    box-shadow:0 2px 6px rgba(83,58,253,0.35);
-  }
-  .brand-word{ display:flex; flex-direction:column; line-height:1.05; }
-  .brand-word b{ font-weight:400; font-size:17px; letter-spacing:-0.3px; color:var(--ink); }
-  .brand-word span{ font-size:10px; font-weight:500; letter-spacing:0.6px; text-transform:uppercase; color:var(--primary); }
-  .env-pill{
-    font-size:10px; font-weight:400; letter-spacing:0.1px;
-    background:var(--primary-subdued); color:var(--primary-deep);
-    padding:4px 10px; border-radius:9999px; margin-left:10px;
-  }
-  .nav-actions{ display:flex; align-items:center; gap:10px; }
-  .nav-status{ display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-mute); }
-  .dot{ width:8px; height:8px; border-radius:50%; background:#1fa15a; box-shadow:0 0 0 3px rgba(31,161,90,0.15); }
-  .dot.warn{ background:#c98a1b; box-shadow:0 0 0 3px rgba(201,138,27,0.15); }
+/* ---------- Nav ---------- */
+.nav-bar{
+display:flex; align-items:center; justify-content:space-between;
+padding:16px 24px;
+background:var(--canvas);
+border-radius:4px;
+margin:20px 24px 0 24px;
+}
+.brand{ display:flex; align-items:center; gap:10px; }
+.brand-mark{
+width:34px; height:34px; border-radius:9px;
+background:var(--primary);
+display:flex; align-items:center; justify-content:center;
+color:#fff; font-weight:600; font-size:15px; letter-spacing:-0.5px;
+box-shadow:0 2px 6px rgba(83,58,253,0.35);
+}
+.brand-word{ display:flex; flex-direction:column; line-height:1.05; }
+.brand-word b{ font-weight:400; font-size:17px; letter-spacing:-0.3px; color:var(--ink); }
+.brand-word span{ font-size:10px; font-weight:500; letter-spacing:0.6px; text-transform:uppercase; color:var(--primary); }
+.env-pill{
+font-size:10px; font-weight:400; letter-spacing:0.1px;
+background:var(--primary-subdued); color:var(--primary-deep);
+padding:4px 10px; border-radius:9999px; margin-left:10px;
+}
+.nav-actions{ display:flex; align-items:center; gap:10px; }
+.nav-status{ display:flex; align-items:center; gap:6px; font-size:13px; color:var(--ink-mute); }
+.dot{ width:8px; height:8px; border-radius:50%; background:#1fa15a; box-shadow:0 0 0 3px rgba(31,161,90,0.15); }
+.dot.warn{ background:#c98a1b; box-shadow:0 0 0 3px rgba(201,138,27,0.15); }
 
-  /* ---------- Tabs ---------- */
-  .tabs-wrap{ margin:24px 24px 0 24px; }
-  .tabs{ display:flex; gap:4px; background:var(--canvas); border-radius:9999px; padding:4px; width:fit-content; box-shadow:0 1px 3px rgba(0,55,112,0.08); }
-  .tab-btn{
-    border:none; background:transparent; cursor:pointer;
-    font-family:inherit; font-weight:400; font-size:14px; color:var(--ink-mute);
-    padding:9px 18px; border-radius:9999px; transition:all .15s ease;
-  }
-  .tab-btn.active{ background:var(--primary); color:#fff; }
-  .tab-btn:not(.active):hover{ background:var(--canvas-soft); color:var(--ink); }
+/* ---------- Tabs ---------- */
+.tabs-wrap{ margin:24px 24px 0 24px; }
+.tabs{ display:flex; gap:4px; background:var(--canvas); border-radius:9999px; padding:4px; width:fit-content; box-shadow:0 1px 3px rgba(0,55,112,0.08); }
+.tab-btn{
+border:none; background:transparent; cursor:pointer;
+font-family:inherit; font-weight:400; font-size:14px; color:var(--ink-mute);
+padding:9px 18px; border-radius:9999px; transition:all .15s ease;
+}
+.tab-btn.active{ background:var(--primary); color:#fff; }
+.tab-btn:not(.active):hover{ background:var(--canvas-soft); color:var(--ink); }
 
-  .page{ padding:20px 24px 64px 24px; max-width:1320px; margin:0 auto; }
-  .panel{ display:none; }
-  .panel.active{ display:block; }
+.page{ padding:20px 24px 64px 24px; max-width:1320px; margin:0 auto; }
+.panel{ display:none; }
+.panel.active{ display:block; }
 
-  /* ---------- Cards ---------- */
-  .card{
-    background:var(--canvas); border:1px solid var(--hairline); border-radius:12px;
-    box-shadow:0 1px 3px rgba(0,55,112,0.08);
-  }
-  .card-pad{ padding:24px; }
-  .grid{ display:grid; gap:16px; }
-  .grid-3{ grid-template-columns:repeat(3,1fr); }
-  .grid-4{ grid-template-columns:repeat(4,1fr); }
-  @media (max-width:900px){ .grid-3,.grid-4{ grid-template-columns:1fr 1fr; } }
+/* ---------- Cards ---------- */
+.card{
+background:var(--canvas); border:1px solid var(--hairline); border-radius:12px;
+box-shadow:0 1px 3px rgba(0,55,112,0.08);
+}
+.card-pad{ padding:24px; }
+.grid{ display:grid; gap:16px; }
+.grid-3{ grid-template-columns:repeat(3,1fr); }
+.grid-4{ grid-template-columns:repeat(4,1fr); }
+@media (max-width:900px){ .grid-3,.grid-4{ grid-template-columns:1fr 1fr; } }
 
-  h1,h2,h3{ font-weight:300; margin:0; color:var(--ink); }
-  .display-md{ font-size:26px; line-height:1.12; letter-spacing:-0.26px; }
-  .heading-lg{ font-size:22px; line-height:1.1; letter-spacing:-0.22px; }
-  .heading-md{ font-size:20px; line-height:1.4; letter-spacing:-0.2px; }
-  .heading-sm{ font-size:18px; line-height:1.4; }
-  .body-md{ font-size:15px; line-height:1.4; }
-  .caption{ font-size:13px; font-weight:400; letter-spacing:-0.39px; color:var(--ink-mute); }
-  .micro-cap{ font-size:10px; font-weight:400; letter-spacing:0.1px; text-transform:uppercase; color:var(--ink-mute); }
+h1,h2,h3{ font-weight:300; margin:0; color:var(--ink); }
+.display-md{ font-size:26px; line-height:1.12; letter-spacing:-0.26px; }
+.heading-lg{ font-size:22px; line-height:1.1; letter-spacing:-0.22px; }
+.heading-md{ font-size:20px; line-height:1.4; letter-spacing:-0.2px; }
+.heading-sm{ font-size:18px; line-height:1.4; }
+.body-md{ font-size:15px; line-height:1.4; }
+.caption{ font-size:13px; font-weight:400; letter-spacing:-0.39px; color:var(--ink-mute); }
+.micro-cap{ font-size:10px; font-weight:400; letter-spacing:0.1px; text-transform:uppercase; color:var(--ink-mute); }
 
-  .section-title{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.section-title{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
 
-  /* ---------- Buttons ---------- */
-  .btn{
-    font-family:inherit; font-weight:400; font-size:14px; cursor:pointer;
-    border-radius:9999px; padding:8px 16px; border:none; display:inline-flex; align-items:center; gap:6px;
-  }
-  .btn-primary{ background:var(--primary); color:#fff; }
-  .btn-primary:hover{ background:var(--primary-deep); }
-  .btn-primary:active{ background:var(--primary-press); }
-  .btn-secondary{ background:var(--canvas); color:var(--primary); border:1px solid var(--primary); }
-  .btn-dark{ background:var(--brand-dark-900); color:#fff; }
-  .btn-ghost{ background:transparent; color:var(--ink-mute); }
-  .btn-sm{ font-size:13px; padding:6px 12px; }
-  .btn[disabled]{ opacity:.5; cursor:not-allowed; }
+/* ---------- Buttons ---------- */
+.btn{
+font-family:inherit; font-weight:400; font-size:14px; cursor:pointer;
+border-radius:9999px; padding:8px 16px; border:none; display:inline-flex; align-items:center; gap:6px;
+}
+.btn-primary{ background:var(--primary); color:#fff; }
+.btn-primary:hover{ background:var(--primary-deep); }
+.btn-primary:active{ background:var(--primary-press); }
+.btn-secondary{ background:var(--canvas); color:var(--primary); border:1px solid var(--primary); }
+.btn-dark{ background:var(--brand-dark-900); color:#fff; }
+.btn-ghost{ background:transparent; color:var(--ink-mute); }
+.btn-sm{ font-size:13px; padding:6px 12px; }
+.btn[disabled]{ opacity:.5; cursor:not-allowed; }
 
-  /* ---------- Inputs ---------- */
-  input[type=text], input[type=search], input[type=password], input[type=file], select, textarea{
-    font-family:inherit; font-weight:300; font-size:15px; color:var(--ink);
-    background:var(--canvas); border:1px solid var(--hairline-input); border-radius:6px;
-    padding:8px 12px; outline:none;
-  }
-  input:focus, select:focus, textarea:focus{ border-color:var(--primary); }
+/* ---------- Inputs ---------- */
+input[type=text], input[type=search], input[type=password], input[type=file], select, textarea{
+font-family:inherit; font-weight:300; font-size:15px; color:var(--ink);
+background:var(--canvas); border:1px solid var(--hairline-input); border-radius:6px;
+padding:8px 12px; outline:none;
+}
+input:focus, select:focus, textarea:focus{ border-color:var(--primary); }
 
-  /* ---------- Tags/pills ---------- */
-  .tag{
-    display:inline-flex; align-items:center; gap:4px;
-    background:var(--primary-subdued); color:var(--primary-deep);
-    font-size:10px; font-weight:400; letter-spacing:0.1px; text-transform:uppercase;
-    padding:4px 8px; border-radius:9999px;
-  }
-  .tag.stage{ background:var(--canvas-cream); color:#8a5a1c; }
-  .tag.type{ background:#e7effe; color:#2451a8; }
-  .tag.type.type-quote{ background:#e9e6fd; color:#4434d4; }
-  .tag.type.type-infographic{ background:#e2f6ea; color:#1f8a4c; }
-  .tag.type.type-conceptual_video{ background:#fdf1de; color:#8a5a1c; }
-  .tag.type.type-announcement{ background:#fdeaef; color:#b0295b; }
-  .tag.speaker-unassigned{ cursor:pointer; border:1px dashed rgba(0,0,0,0.18); font-family:inherit; }
-  .tag.speaker-assigned{ cursor:pointer; border:none; font-family:inherit; }
-  .tag.speaker-unassigned:hover, .tag.speaker-assigned:hover{ filter:brightness(0.95); }
+/* ---------- Tags/pills ---------- */
+.tag{
+display:inline-flex; align-items:center; gap:4px;
+background:var(--primary-subdued); color:var(--primary-deep);
+font-size:10px; font-weight:400; letter-spacing:0.1px; text-transform:uppercase;
+padding:4px 8px; border-radius:9999px;
+}
+.tag.stage{ background:var(--canvas-cream); color:#8a5a1c; }
+.tag.type{ background:#e7effe; color:#2451a8; }
+.tag.type.type-quote{ background:#e9e6fd; color:#4434d4; }
+.tag.type.type-infographic{ background:#e2f6ea; color:#1f8a4c; }
+.tag.type.type-conceptual_video{ background:#fdf1de; color:#8a5a1c; }
+.tag.type.type-announcement{ background:#fdeaef; color:#b0295b; }
+.tag.speaker-unassigned{ cursor:pointer; border:1px dashed rgba(0,0,0,0.18); font-family:inherit; }
+.tag.speaker-assigned{ cursor:pointer; border:none; font-family:inherit; }
+.tag.speaker-unassigned:hover, .tag.speaker-assigned:hover{ filter:brightness(0.95); }
 
-  /* ---------- Speaker legend ---------- */
-  .speaker-legend{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--hairline); }
-  .speaker-chip{ display:flex; align-items:center; gap:6px; border:1px solid var(--hairline); border-radius:9999px; padding:4px 10px 4px 4px; font-size:12px; background:var(--canvas-soft); cursor:pointer; font-family:inherit; }
-  .speaker-chip:hover{ filter:brightness(0.97); }
-  .speaker-chip .avatar{ width:20px; height:20px; border-radius:50%; font-size:9px; font-weight:600; display:flex; align-items:center; justify-content:center; flex:none; }
-  .speaker-chip .label{ color:var(--ink-mute); font-size:10px; text-transform:uppercase; }
-  .speaker-chip .name{ color:var(--ink); }
+/* ---------- Speaker legend ---------- */
+.speaker-legend{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; padding-bottom:14px; border-bottom:1px solid var(--hairline); }
+.speaker-chip{ display:flex; align-items:center; gap:6px; border:1px solid var(--hairline); border-radius:9999px; padding:4px 10px 4px 4px; font-size:12px; background:var(--canvas-soft); cursor:pointer; font-family:inherit; }
+.speaker-chip:hover{ filter:brightness(0.97); }
+.speaker-chip .avatar{ width:20px; height:20px; border-radius:50%; font-size:9px; font-weight:600; display:flex; align-items:center; justify-content:center; flex:none; }
+.speaker-chip .label{ color:var(--ink-mute); font-size:10px; text-transform:uppercase; }
+.speaker-chip .name{ color:var(--ink); }
 
-  /* ---------- Empty state ---------- */
-  .empty{
-    text-align:center; padding:48px 24px; color:var(--ink-mute);
-  }
-  .empty .icon{ font-size:28px; margin-bottom:8px; }
+/* ---------- Empty state ---------- */
+.empty{
+text-align:center; padding:48px 24px; color:var(--ink-mute);
+}
+.empty .icon{ font-size:28px; margin-bottom:8px; }
 
-  /* ---------- Speaker/transcript rows ---------- */
-  .seg-row{ display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--hairline); align-items:flex-start; cursor:pointer; }
-  .seg-row:hover{ background:var(--canvas-soft); }
-  .seg-time{ width:56px; flex:none; font-size:12px; color:var(--ink-mute); font-feature-settings:"tnum"; padding-top:2px;}
-  .seg-speaker{ width:150px; flex:none; font-size:13px; font-weight:500; color:var(--ink-secondary); padding-top:1px; }
-  .seg-text{ flex:1; font-size:15px; }
+/* ---------- Speaker/transcript rows ---------- */
+.seg-row{ display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--hairline); align-items:flex-start; cursor:pointer; }
+.seg-row:hover{ background:var(--canvas-soft); }
+.seg-time{ width:56px; flex:none; font-size:12px; color:var(--ink-mute); font-feature-settings:"tnum"; padding-top:2px;}
+.seg-speaker{ width:150px; flex:none; font-size:13px; font-weight:500; color:var(--ink-secondary); padding-top:1px; }
+.seg-text{ flex:1; font-size:15px; }
 
-  table{ width:100%; border-collapse:collapse; }
-  th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-mute); font-weight:400; padding:8px 12px; border-bottom:1px solid var(--hairline); }
-  td{ padding:12px; border-bottom:1px solid var(--hairline); font-size:14px; }
+table{ width:100%; border-collapse:collapse; }
+th{ text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-mute); font-weight:400; padding:8px 12px; border-bottom:1px solid var(--hairline); }
+td{ padding:12px; border-bottom:1px solid var(--hairline); font-size:14px; }
 
-  /* ---------- Kanban ---------- */
-  .kanban{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
-  @media (max-width:1100px){ .kanban{ grid-template-columns:repeat(2,1fr); } }
-  .kanban-col{ background:var(--canvas-soft); border-radius:12px; padding:12px; min-height:220px; }
-  .kanban-col h4{ font-size:12px; font-weight:500; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-mute); margin:4px 8px 12px 8px; }
-  .kcard{ background:var(--canvas); border:1px solid var(--hairline); border-radius:8px; padding:12px; margin-bottom:8px; font-size:13px; box-shadow:0 1px 3px rgba(0,55,112,0.06); }
-  .kcard .q{ font-size:13px; line-height:1.35; margin-bottom:8px; color:var(--ink); }
-  .kcard .meta{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; }
-  .kcard .meta-left{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-  .kcard .type-select{ font-size:10px; padding:3px 6px; border-radius:9999px; border:1px solid var(--hairline-input); text-transform:uppercase; letter-spacing:0.1px; }
-  .kcard .actions{ display:flex; gap:6px; margin-top:10px; padding-top:10px; border-top:1px solid var(--hairline); }
-  .note-field{ width:100%; min-height:40px; font-size:12px; padding:6px 8px; margin-top:8px; background:var(--canvas-soft); border:1px dashed var(--hairline-input); border-radius:6px; color:var(--ink-secondary); }
-  .note-field::placeholder{ color:var(--ink-mute); }
+/* ---------- Kanban ---------- */
+.kanban{ display:grid; grid-template-columns:repeat(5,1fr); gap:12px; }
+@media (max-width:1100px){ .kanban{ grid-template-columns:repeat(2,1fr); } }
+.kanban-col{ background:var(--canvas-soft); border-radius:12px; padding:12px; min-height:220px; }
+.kanban-col h4{ font-size:12px; font-weight:500; text-transform:uppercase; letter-spacing:0.4px; color:var(--ink-mute); margin:4px 8px 12px 8px; }
+.kcard{ background:var(--canvas); border:1px solid var(--hairline); border-radius:8px; padding:12px; margin-bottom:8px; font-size:13px; box-shadow:0 1px 3px rgba(0,55,112,0.06); }
+.kcard .q{ font-size:13px; line-height:1.35; margin-bottom:8px; color:var(--ink); }
+.kcard .meta{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; }
+.kcard .meta-left{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.kcard .type-select{ font-size:10px; padding:3px 6px; border-radius:9999px; border:1px solid var(--hairline-input); text-transform:uppercase; letter-spacing:0.1px; }
+.kcard .actions{ display:flex; gap:6px; margin-top:10px; padding-top:10px; border-top:1px solid var(--hairline); }
+.note-field{ width:100%; min-height:40px; font-size:12px; padding:6px 8px; margin-top:8px; background:var(--canvas-soft); border:1px dashed var(--hairline-input); border-radius:6px; color:var(--ink-secondary); }
+.note-field::placeholder{ color:var(--ink-mute); }
 
-  #addToShortlistBtn{ position:absolute; z-index:40; display:none; box-shadow:0 4px 12px rgba(0,55,112,0.2); }
+#addToShortlistBtn{ position:absolute; z-index:40; display:none; box-shadow:0 4px 12px rgba(0,55,112,0.2); }
 
-  .stat{ display:flex; flex-direction:column; gap:4px; }
-  .stat .num{ font-size:32px; font-weight:300; letter-spacing:-0.5px; font-feature-settings:"tnum"; color:var(--ink); }
-  .stat .lbl{ font-size:12px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.4px; }
+.stat{ display:flex; flex-direction:column; gap:4px; }
+.stat .num{ font-size:32px; font-weight:300; letter-spacing:-0.5px; font-feature-settings:"tnum"; color:var(--ink); }
+.stat .lbl{ font-size:12px; color:var(--ink-mute); text-transform:uppercase; letter-spacing:0.4px; }
 
-  .modal-overlay{ position:fixed; inset:0; background:rgba(13,37,61,0.5); display:none; align-items:center; justify-content:center; z-index:50; }
-  .modal-overlay.open{ display:flex; }
-  .modal{ background:var(--canvas); border-radius:16px; padding:24px; width:420px; max-width:90vw; box-shadow:0 8px 24px rgba(0,55,112,0.16); }
-  .field{ margin-bottom:14px; display:flex; flex-direction:column; gap:6px; }
-  .field label{ font-size:12px; color:var(--ink-mute); }
-  .field input, .field select, .field textarea{ width:100%; font-family:inherit; resize:vertical; }
-  .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
+.modal-overlay{ position:fixed; inset:0; background:rgba(13,37,61,0.5); display:none; align-items:center; justify-content:center; z-index:50; }
+.modal-overlay.open{ display:flex; }
+.modal{ background:var(--canvas); border-radius:16px; padding:24px; width:420px; max-width:90vw; box-shadow:0 8px 24px rgba(0,55,112,0.16); }
+.field{ margin-bottom:14px; display:flex; flex-direction:column; gap:6px; }
+.field label{ font-size:12px; color:var(--ink-mute); }
+.field input, .field select, .field textarea{ width:100%; font-family:inherit; resize:vertical; }
+.modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:16px; }
 
-  .footer{ text-align:center; padding:32px; color:var(--ink-mute); font-size:12px; }
-  .toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--brand-dark-900); color:#fff; padding:10px 18px; border-radius:9999px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:100; }
-  .toast.show{ opacity:1; }
+.footer{ text-align:center; padding:32px; color:var(--ink-mute); font-size:12px; }
+.toast{ position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:var(--brand-dark-900); color:#fff; padding:10px 18px; border-radius:9999px; font-size:13px; opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:100; }
+.toast.show{ opacity:1; }
+
+/* ---------- Mentions ---------- */
+.mention-card{ margin-bottom:12px; }
+.mention-card-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; }
+.mention-card-head:hover{ opacity:0.85; }
+.mention-term{ font-size:16px; color:var(--ink); }
+.mention-count{ font-size:22px; font-feature-settings:"tnum"; color:var(--primary-deep); }
+.mention-breakdown{ display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+.mention-pill{ display:inline-flex; align-items:center; gap:4px; background:var(--canvas-soft); border:1px solid var(--hairline); color:var(--ink-secondary); font-size:12px; padding:3px 9px; border-radius:9999px; }
+.mention-pill.sample{ border-style:dashed; color:var(--ink-mute); }
+.mention-quotes{ display:none; margin-top:14px; padding-top:14px; border-top:1px solid var(--hairline); }
+.mention-quotes.open{ display:block; }
+.mention-quote-row{ padding:10px 0; border-bottom:1px solid var(--hairline); }
+.mention-quote-row:last-child{ border-bottom:none; }
+.mention-quote-meta{ display:flex; gap:10px; align-items:center; margin-bottom:4px; }
+.mention-quote-text mark{ background:#fdf1de; color:#8a5a1c; padding:0 2px; border-radius:3px; }
+.mention-toggle{ font-size:12px; color:var(--primary); }
 </style>
 </head>
 <body>
 
 <div class="mesh-hero">
-  <div class="nav-bar">
-    <div class="brand">
-      <div class="brand-mark">24</div>
-      <div class="brand-word">
-        <b>Relevant 24</b>
-        <span>Events</span>
-      </div>
-      <span class="env-pill" id="envPill">connecting…</span>
-    </div>
-    <div class="nav-actions">
-      <div class="nav-status"><span class="dot" id="statusDot"></span><span id="statusText">Supabase</span></div>
-      <div id="authArea"></div>
-      <button class="btn btn-secondary btn-sm" onclick="location.reload()">Refresh</button>
-    </div>
-  </div>
+<div class="nav-bar">
+<div class="brand">
+<div class="brand-mark">24</div>
+<div class="brand-word">
+<b>Relevant 24</b>
+<span>Events</span>
+</div>
+<span class="env-pill" id="envPill">connecting…</span>
+</div>
+<div class="nav-actions">
+<div class="nav-status"><span class="dot" id="statusDot"></span><span id="statusText">Supabase</span></div>
+<div id="authArea"></div>
+<button class="btn btn-secondary btn-sm" onclick="location.reload()">Refresh</button>
+</div>
+</div>
 
-  <div class="tabs-wrap">
-    <div class="tabs">
-      <button class="tab-btn active" data-tab="live">Live Session</button>
-      <button class="tab-btn" data-tab="pipeline">Production Pipeline</button>
-      <button class="tab-btn" data-tab="speakers">Speaker Roster</button>
-      <button class="tab-btn" data-tab="watchlist">Watchlist</button>
-    </div>
-  </div>
+<div class="tabs-wrap">
+<div class="tabs">
+<button class="tab-btn active" data-tab="live">Live Session</button>
+<button class="tab-btn" data-tab="pipeline">Production Pipeline</button>
+<button class="tab-btn" data-tab="mentions">Mentions</button>
+<button class="tab-btn" data-tab="speakers">Speaker Roster</button>
+<button class="tab-btn" data-tab="watchlist">Watchlist</button>
+</div>
+</div>
 </div>
 
 <div class="page">
 
-  <!-- LIVE SESSION -->
-  <div class="panel active" id="panel-live">
-    <div class="grid grid-3" style="margin-bottom:16px;">
-      <div class="card card-pad stat"><div class="num tabular" id="statEvents">–</div><div class="lbl">Events tracked</div></div>
-      <div class="card card-pad stat"><div class="num tabular" id="statSegments">–</div><div class="lbl">Transcript segments</div></div>
-      <div class="card card-pad stat"><div class="num tabular" id="statShortlist">–</div><div class="lbl">AI shortlist items</div></div>
-    </div>
+<!-- LIVE SESSION -->
+<div class="panel active" id="panel-live">
+<div class="grid grid-3" style="margin-bottom:16px;">
+<div class="card card-pad stat"><div class="num tabular" id="statEvents">–</div><div class="lbl">Events tracked</div></div>
+<div class="card card-pad stat"><div class="num tabular" id="statSegments">–</div><div class="lbl">Transcript segments</div></div>
+<div class="card card-pad stat"><div class="num tabular" id="statShortlist">–</div><div class="lbl">AI shortlist items</div></div>
+</div>
 
-    <div class="card card-pad" style="margin-bottom:16px;">
-      <div class="section-title">
-        <h3 class="heading-md">Event</h3>
-        <select id="eventSelect" style="min-width:320px;"></select>
-      </div>
-      <div class="caption" id="eventMeta">Loading event…</div>
-    </div>
+<div class="card card-pad" style="margin-bottom:16px;">
+<div class="section-title">
+<h3 class="heading-md">Event</h3>
+<select id="eventSelect" style="min-width:320px;"></select>
+</div>
+<div class="caption" id="eventMeta">Loading event…</div>
+</div>
 
-    <div class="grid" style="grid-template-columns:1.4fr 1fr;">
-      <div class="card card-pad">
-        <div class="section-title"><h3 class="heading-md">Transcript</h3><span class="micro-cap" id="segCount"></span></div>
-        <div id="speakerLegend" class="speaker-legend" style="display:none;"></div>
-        <div id="transcriptList"></div>
-      </div>
-      <div class="card card-pad">
-        <div class="section-title">
-          <h3 class="heading-md">AI Shortlist</h3>
-          <select id="sortShortlist" class="btn-sm" style="border:1px solid var(--hairline-input); border-radius:6px; padding:4px 8px; font-size:12px;">
-            <option value="score">Score</option>
-            <option value="recent">Most recent</option>
-            <option value="oldest">Oldest</option>
-          </select>
-        </div>
-        <div id="shortlistList"></div>
-      </div>
-    </div>
-  </div>
+<div class="grid" style="grid-template-columns:1.4fr 1fr;">
+<div class="card card-pad">
+<div class="section-title"><h3 class="heading-md">Transcript</h3><span class="micro-cap" id="segCount"></span></div>
+<div id="speakerLegend" class="speaker-legend" style="display:none;"></div>
+<div id="transcriptList"></div>
+</div>
+<div class="card card-pad">
+<div class="section-title">
+<h3 class="heading-md">AI Shortlist</h3>
+<select id="sortShortlist" class="btn-sm" style="border:1px solid var(--hairline-input); border-radius:6px; padding:4px 8px; font-size:12px;">
+<option value="score">Score</option>
+<option value="recent">Most recent</option>
+<option value="oldest">Oldest</option>
+</select>
+</div>
+<div id="shortlistList"></div>
+</div>
+</div>
+</div>
 
-  <!-- PRODUCTION PIPELINE -->
-  <div class="panel" id="panel-pipeline">
-    <div class="section-title"><h2 class="heading-lg">Production Pipeline</h2><span class="caption">Live from <code>shortlist_items</code></span></div>
-    <div class="kanban" id="kanbanBoard"></div>
-  </div>
+<!-- PRODUCTION PIPELINE -->
+<div class="panel" id="panel-pipeline">
+<div class="section-title"><h2 class="heading-lg">Production Pipeline</h2><span class="caption">Live from <code>shortlist_items</code></span></div>
+<div class="kanban" id="kanbanBoard"></div>
+</div>
 
-  <!-- SPEAKER ROSTER -->
-  <div class="panel" id="panel-speakers">
-    <div class="section-title">
-      <h2 class="heading-lg">Speaker Roster</h2>
-      <button class="btn btn-primary btn-sm" onclick="openSpeakerModal()">+ Add speaker</button>
-    </div>
-    <div class="card">
-      <table>
-        <thead><tr><th>Name</th><th>Role</th><th>Organization</th><th>Priority</th><th></th></tr></thead>
-        <tbody id="speakerRows"></tbody>
-      </table>
-      <div class="empty" id="speakerEmpty" style="display:none;">
-        <div class="icon">🎙️</div>
-        <div class="body-md">No speakers enrolled yet.</div>
-        <div class="caption">Add the ADSW speaker roster to enable priority matching.</div>
-      </div>
-    </div>
-  </div>
+<!-- MENTIONS -->
+<div class="panel" id="panel-mentions">
+<div class="section-title"><h2 class="heading-lg">Mentions</h2><span class="caption">Watchlist terms across every transcribed event</span></div>
+<div class="grid grid-3" style="margin-bottom:16px;">
+<div class="card card-pad stat"><div class="num tabular" id="mentionsStatTotal">–</div><div class="lbl">Total mentions</div></div>
+<div class="card card-pad stat"><div class="num tabular" id="mentionsStatTerms">–</div><div class="lbl">Terms tracked</div></div>
+<div class="card card-pad stat"><div class="num tabular" id="mentionsStatTop">–</div><div class="lbl">Most-mentioned term</div></div>
+</div>
+<div id="mentionsList"></div>
+</div>
 
-  <!-- WATCHLIST -->
-  <div class="panel" id="panel-watchlist">
-    <div class="section-title">
-      <h2 class="heading-lg">Watchlist</h2>
-      <button class="btn btn-primary btn-sm" onclick="openWatchlistModal()">+ Add item</button>
-    </div>
-    <div class="grid grid-3" id="watchlistGroups"></div>
-  </div>
+<!-- SPEAKER ROSTER -->
+<div class="panel" id="panel-speakers">
+<div class="section-title">
+<h2 class="heading-lg">Speaker Roster</h2>
+<button class="btn btn-primary btn-sm" onclick="openSpeakerModal()">+ Add speaker</button>
+</div>
+<div class="card">
+<table>
+<thead><tr><th>Name</th><th>Role</th><th>Organization</th><th>Priority</th><th></th></tr></thead>
+<tbody id="speakerRows"></tbody>
+</table>
+<div class="empty" id="speakerEmpty" style="display:none;">
+<div class="icon">🎙️</div>
+<div class="body-md">No speakers enrolled yet.</div>
+<div class="caption">Add the ADSW speaker roster to enable priority matching.</div>
+</div>
+</div>
+</div>
+
+<!-- WATCHLIST -->
+<div class="panel" id="panel-watchlist">
+<div class="section-title">
+<h2 class="heading-lg">Watchlist</h2>
+<button class="btn btn-primary btn-sm" onclick="openWatchlistModal()">+ Add item</button>
+</div>
+<div class="grid grid-3" id="watchlistGroups"></div>
+</div>
 
 </div>
 
@@ -337,86 +366,86 @@
 
 <!-- Speaker modal -->
 <div class="modal-overlay" id="speakerModalOverlay">
-  <div class="modal">
-    <h3 class="heading-md" style="margin-bottom:16px;">Add speaker</h3>
-    <div class="field"><label>Name</label><input type="text" id="spName" /></div>
-    <div class="field"><label>Role</label><input type="text" id="spRole" /></div>
-    <div class="field"><label>Organization</label><input type="text" id="spOrg" /></div>
-    <div class="field" style="flex-direction:row; align-items:center; gap:8px;"><input type="checkbox" id="spPriority" style="width:auto;" /><label style="margin:0;">Priority speaker</label></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('speakerModalOverlay')">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="submitSpeaker()">Add</button>
-    </div>
-  </div>
+<div class="modal">
+<h3 class="heading-md" style="margin-bottom:16px;">Add speaker</h3>
+<div class="field"><label>Name</label><input type="text" id="spName" /></div>
+<div class="field"><label>Role</label><input type="text" id="spRole" /></div>
+<div class="field"><label>Organization</label><input type="text" id="spOrg" /></div>
+<div class="field" style="flex-direction:row; align-items:center; gap:8px;"><input type="checkbox" id="spPriority" style="width:auto;" /><label style="margin:0;">Priority speaker</label></div>
+<div class="modal-actions">
+<button class="btn btn-ghost btn-sm" onclick="closeModal('speakerModalOverlay')">Cancel</button>
+<button class="btn btn-primary btn-sm" onclick="submitSpeaker()">Add</button>
+</div>
+</div>
 </div>
 
 <!-- Watchlist modal -->
 <div class="modal-overlay" id="watchlistModalOverlay">
-  <div class="modal">
-    <h3 class="heading-md" style="margin-bottom:16px;">Add watchlist item</h3>
-    <div class="field"><label>Kind</label>
-      <select id="wlKind"><option value="brand">Brand</option><option value="person">Person</option><option value="topic">Topic</option></select>
-    </div>
-    <div class="field"><label>Value</label><input type="text" id="wlValue" placeholder="e.g. Masdar, H.E. ..., green hydrogen" /></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('watchlistModalOverlay')">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="submitWatchlist()">Add</button>
-    </div>
-  </div>
+<div class="modal">
+<h3 class="heading-md" style="margin-bottom:16px;">Add watchlist item</h3>
+<div class="field"><label>Kind</label>
+<select id="wlKind"><option value="brand">Brand</option><option value="person">Person</option><option value="topic">Topic</option></select>
+</div>
+<div class="field"><label>Value</label><input type="text" id="wlValue" placeholder="e.g. Masdar, H.E. ..., green hydrogen" /></div>
+<div class="modal-actions">
+<button class="btn btn-ghost btn-sm" onclick="closeModal('watchlistModalOverlay')">Cancel</button>
+<button class="btn btn-primary btn-sm" onclick="submitWatchlist()">Add</button>
+</div>
+</div>
 </div>
 
 <!-- Rename speaker modal -->
 <div class="modal-overlay" id="renameSpeakerModalOverlay">
-  <div class="modal">
-    <h3 class="heading-md" style="margin-bottom:4px;">Assign speaker name</h3>
-    <p class="caption" style="margin:0 0 16px 0;">Applies to every <span id="renameSpeakerRawLabel" class="tabular"></span> line in this event.</p>
-    <div class="field">
-      <label>Real name</label>
-      <input type="text" id="renameSpeakerName" placeholder="e.g. H.E. Dr. Sultan Al Jaber" />
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('renameSpeakerModalOverlay')">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="submitRenameSpeaker()">Save</button>
-    </div>
-  </div>
+<div class="modal">
+<h3 class="heading-md" style="margin-bottom:4px;">Assign speaker name</h3>
+<p class="caption" style="margin:0 0 16px 0;">Applies to every <span id="renameSpeakerRawLabel" class="tabular"></span> line in this event.</p>
+<div class="field">
+<label>Real name</label>
+<input type="text" id="renameSpeakerName" placeholder="e.g. H.E. Dr. Sultan Al Jaber" />
+</div>
+<div class="modal-actions">
+<button class="btn btn-ghost btn-sm" onclick="closeModal('renameSpeakerModalOverlay')">Cancel</button>
+<button class="btn btn-primary btn-sm" onclick="submitRenameSpeaker()">Save</button>
+</div>
+</div>
 </div>
 
 <!-- Sign in modal -->
 <div class="modal-overlay" id="signInModalOverlay">
-  <div class="modal">
-    <h3 class="heading-md" style="margin-bottom:16px;">Sign in</h3>
-    <div class="field"><label>Email</label><input type="text" id="authEmail" autocomplete="username" /></div>
-    <div class="field"><label>Password</label><input type="password" id="authPassword" autocomplete="current-password" /></div>
-    <div class="caption" id="authError" style="color:var(--ruby); margin-bottom:4px;"></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal('signInModalOverlay')">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="submitSignIn()">Sign in</button>
-    </div>
-  </div>
+<div class="modal">
+<h3 class="heading-md" style="margin-bottom:16px;">Sign in</h3>
+<div class="field"><label>Email</label><input type="text" id="authEmail" autocomplete="username" /></div>
+<div class="field"><label>Password</label><input type="password" id="authPassword" autocomplete="current-password" /></div>
+<div class="caption" id="authError" style="color:var(--ruby); margin-bottom:4px;"></div>
+<div class="modal-actions">
+<button class="btn btn-ghost btn-sm" onclick="closeModal('signInModalOverlay')">Cancel</button>
+<button class="btn btn-primary btn-sm" onclick="submitSignIn()">Sign in</button>
+</div>
+</div>
 </div>
 
 <button class="btn btn-primary btn-sm" id="addToShortlistBtn" onclick="openManualShortlistModal()">+ Add to shortlist</button>
 
 <!-- Manual shortlist modal (from a transcript text selection) -->
 <div class="modal-overlay" id="manualShortlistModalOverlay">
-  <div class="modal">
-    <h3 class="heading-md" style="margin-bottom:4px;">Add to shortlist</h3>
-    <p class="caption" style="margin:0 0 16px 0;">From <span id="manualQuoteSpeaker" class="tabular"></span></p>
-    <div class="field"><label>Quote</label><textarea id="manualQuoteText" rows="4"></textarea></div>
-    <div class="field"><label>Format</label>
-      <select id="manualQuoteType">
-        <option value="quote">Quote</option>
-        <option value="infographic">Infographic</option>
-        <option value="conceptual_video">Conceptual Video</option>
-        <option value="announcement">Announcement</option>
-      </select>
-    </div>
-    <div class="field"><label>Note for your team (optional)</label><textarea id="manualQuoteNotes" rows="2" placeholder="e.g. Use for the opening hook, pair with drone b-roll..."></textarea></div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="cancelManualShortlist()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="submitManualShortlist()">Add</button>
-    </div>
-  </div>
+<div class="modal">
+<h3 class="heading-md" style="margin-bottom:4px;">Add to shortlist</h3>
+<p class="caption" style="margin:0 0 16px 0;">From <span id="manualQuoteSpeaker" class="tabular"></span></p>
+<div class="field"><label>Quote</label><textarea id="manualQuoteText" rows="4"></textarea></div>
+<div class="field"><label>Format</label>
+<select id="manualQuoteType">
+<option value="quote">Quote</option>
+<option value="infographic">Infographic</option>
+<option value="conceptual_video">Conceptual Video</option>
+<option value="announcement">Announcement</option>
+</select>
+</div>
+<div class="field"><label>Note for your team (optional)</label><textarea id="manualQuoteNotes" rows="2" placeholder="e.g. Use for the opening hook, pair with drone b-roll..."></textarea></div>
+<div class="modal-actions">
+<button class="btn btn-ghost btn-sm" onclick="cancelManualShortlist()">Cancel</button>
+<button class="btn btn-primary btn-sm" onclick="submitManualShortlist()">Add</button>
+</div>
+</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -426,28 +455,28 @@ const SUPABASE_URL = "https://cscyhgaoglubwpuhqnjv.supabase.co";
 const SUPABASE_KEY = "sb_publishable_G_MTJPRf8Qf6SLm1gv6DxA_w4OWvxkM";
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-let state = { events:[], currentEventId:null, speakers:[], watchlist:[], segments:[], shortlist:[], speakerAliases:{}, renameTargetLabel:null };
+let state = { events:[], currentEventId:null, speakers:[], watchlist:[], segments:[], shortlist:[], speakerAliases:{}, renameTargetLabel:null, mentionAliases:{} };
 
 function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2200);
+const t = document.getElementById('toast');
+t.textContent = msg; t.classList.add('show');
+setTimeout(()=>t.classList.remove('show'), 2200);
 }
 
 function setStatus(ok, label){
-  document.getElementById('statusDot').classList.toggle('warn', !ok);
-  document.getElementById('statusText').textContent = label;
-  document.getElementById('envPill').textContent = ok ? 'live · ap-south-1' : 'connection issue';
+document.getElementById('statusDot').classList.toggle('warn', !ok);
+document.getElementById('statusText').textContent = label;
+document.getElementById('envPill').textContent = ok ? 'live · ap-south-1' : 'connection issue';
 }
 
 // ---------- Tabs ----------
 document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
-  });
+btn.addEventListener('click', ()=>{
+document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+btn.classList.add('active');
+document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+});
 });
 
 function openModal(id){ document.getElementById(id).classList.add('open'); }
@@ -457,224 +486,224 @@ function openWatchlistModal(){ openModal('watchlistModalOverlay'); }
 
 // ---------- Data loaders ----------
 async function loadEvents(){
-  const { data, error } = await sb.from('events').select('*').order('created_at');
-  if(error){ setStatus(false, 'Supabase error'); console.error(error); return; }
-  setStatus(true, 'Supabase connected');
-  state.events = data || [];
-  const sel = document.getElementById('eventSelect');
-  sel.innerHTML = state.events.map(e=>`<option value="${e.id}">${e.name}</option>`).join('') || '<option>No events yet</option>';
-  if(state.events.length){
-    state.currentEventId = state.events[0].id;
-    sel.value = state.currentEventId;
-  }
-  sel.onchange = ()=>{ state.currentEventId = sel.value; refreshEventScoped(); };
-  document.getElementById('statEvents').textContent = state.events.length;
-  refreshEventScoped();
+const { data, error } = await sb.from('events').select('*').order('created_at');
+if(error){ setStatus(false, 'Supabase error'); console.error(error); return; }
+setStatus(true, 'Supabase connected');
+state.events = data || [];
+const sel = document.getElementById('eventSelect');
+sel.innerHTML = state.events.map(e=>`<option value="${e.id}">${e.name}</option>`).join('') || '<option>No events yet</option>';
+if(state.events.length){
+state.currentEventId = state.events[0].id;
+sel.value = state.currentEventId;
+}
+sel.onchange = ()=>{ state.currentEventId = sel.value; refreshEventScoped(); };
+document.getElementById('statEvents').textContent = state.events.length;
+refreshEventScoped();
 }
 
 function renderEventMeta(){
-  const ev = state.events.find(e=>e.id===state.currentEventId);
-  const el = document.getElementById('eventMeta');
-  if(!ev){ el.textContent = 'No event selected.'; return; }
-  el.innerHTML = `Source: ${ev.source_type} · <a href="${ev.source_url}" target="_blank" rel="noopener">${ev.source_url}</a>`;
+const ev = state.events.find(e=>e.id===state.currentEventId);
+const el = document.getElementById('eventMeta');
+if(!ev){ el.textContent = 'No event selected.'; return; }
+el.innerHTML = `Source: ${ev.source_type} · <a href="${ev.source_url}" target="_blank" rel="noopener">${ev.source_url}</a>`;
 }
 
 async function refreshEventScoped(){
-  renderEventMeta();
-  await loadSpeakerAliases();
-  await Promise.all([loadTranscript(), loadShortlist()]);
+renderEventMeta();
+await loadSpeakerAliases();
+await Promise.all([loadTranscript(), loadShortlist()]);
 }
 
 // ---------- Speaker aliases (click a "Speaker N" tag to assign a real name) ----------
 async function loadSpeakerAliases(){
-  state.speakerAliases = {};
-  if(!state.currentEventId) return;
-  const { data, error } = await sb.from('speaker_aliases').select('*').eq('event_id', state.currentEventId);
-  if(error){ console.error(error); return; }
-  (data || []).forEach(row => { state.speakerAliases[row.raw_label] = row.display_name; });
+state.speakerAliases = {};
+if(!state.currentEventId) return;
+const { data, error } = await sb.from('speaker_aliases').select('*').eq('event_id', state.currentEventId);
+if(error){ console.error(error); return; }
+(data || []).forEach(row => { state.speakerAliases[row.raw_label] = row.display_name; });
 }
 
 function speakerDisplayName(rawLabel){
-  return state.speakerAliases[rawLabel] || rawLabel;
+return state.speakerAliases[rawLabel] || rawLabel;
 }
 
 // Give every distinct speaker in an event a consistent color, so you can
 // tell them apart at a glance while scrolling, whether or not they've
 // been assigned a real name yet.
 const SPEAKER_PALETTE = [
-  { bg:'#e9e6fd', fg:'#4434d4' }, // purple
-  { bg:'#e2effe', fg:'#1c5fa8' }, // blue
-  { bg:'#fdf1de', fg:'#8a5a1c' }, // amber
-  { bg:'#fdeaef', fg:'#b0295b' }, // rose
-  { bg:'#e2f6ea', fg:'#1f8a4c' }, // green
-  { bg:'#e2f5f5', fg:'#1c7a7a' }, // teal
+{ bg:'#e9e6fd', fg:'#4434d4' }, // purple
+{ bg:'#e2effe', fg:'#1c5fa8' }, // blue
+{ bg:'#fdf1de', fg:'#8a5a1c' }, // amber
+{ bg:'#fdeaef', fg:'#b0295b' }, // rose
+{ bg:'#e2f6ea', fg:'#1f8a4c' }, // green
+{ bg:'#e2f5f5', fg:'#1c7a7a' }, // teal
 ];
 function speakerColor(rawLabel){
-  let hash = 0;
-  const s = String(rawLabel || '');
-  for(let i=0;i<s.length;i++){ hash = (hash * 31 + s.charCodeAt(i)) >>> 0; }
-  return SPEAKER_PALETTE[hash % SPEAKER_PALETTE.length];
+let hash = 0;
+const s = String(rawLabel || '');
+for(let i=0;i<s.length;i++){ hash = (hash * 31 + s.charCodeAt(i)) >>> 0; }
+return SPEAKER_PALETTE[hash % SPEAKER_PALETTE.length];
 }
 
 function speakerTagHtml(rawLabel){
-  const assigned = !!state.speakerAliases[rawLabel];
-  const cls = assigned ? 'speaker-assigned' : 'speaker-unassigned';
-  const c = speakerColor(rawLabel);
-  const label = assigned ? speakerDisplayName(rawLabel) : `${escapeHtml(rawLabel)} ▾`;
-  return `<button type="button" class="tag ${cls}" style="background:${c.bg};color:${c.fg};" onclick="openRenameSpeakerModal('${escapeAttr(rawLabel)}')">${assigned ? escapeHtml(label) : label}</button>`;
+const assigned = !!state.speakerAliases[rawLabel];
+const cls = assigned ? 'speaker-assigned' : 'speaker-unassigned';
+const c = speakerColor(rawLabel);
+const label = assigned ? speakerDisplayName(rawLabel) : `${escapeHtml(rawLabel)} ▾`;
+return `<button type="button" class="tag ${cls}" style="background:${c.bg};color:${c.fg};" onclick="openRenameSpeakerModal('${escapeAttr(rawLabel)}')">${assigned ? escapeHtml(label) : label}</button>`;
 }
 
 function renderSpeakerLegend(segments){
-  const box = document.getElementById('speakerLegend');
-  const rawLabels = [...new Set(segments.map(s => s.speaker_label || 'Unknown'))];
-  if(!rawLabels.length){ box.style.display = 'none'; box.innerHTML = ''; return; }
-  box.style.display = 'flex';
-  box.innerHTML = rawLabels.map(label => {
-    const assigned = !!state.speakerAliases[label];
-    const initials = assigned ? initialsOf(speakerDisplayName(label)) : '?';
-    const c = speakerColor(label);
-    return `
-      <button type="button" class="speaker-chip ${assigned ? '' : 'unassigned'}" onclick="openRenameSpeakerModal('${escapeAttr(label)}')">
-        <span class="avatar" style="background:${c.bg};color:${c.fg};">${escapeHtml(initials)}</span>
-        <span class="label">${escapeHtml(label)}</span>
-        <span class="name">${assigned ? escapeHtml(speakerDisplayName(label)) : 'Assign name ▾'}</span>
-      </button>`;
-  }).join('');
+const box = document.getElementById('speakerLegend');
+const rawLabels = [...new Set(segments.map(s => s.speaker_label || 'Unknown'))];
+if(!rawLabels.length){ box.style.display = 'none'; box.innerHTML = ''; return; }
+box.style.display = 'flex';
+box.innerHTML = rawLabels.map(label => {
+const assigned = !!state.speakerAliases[label];
+const initials = assigned ? initialsOf(speakerDisplayName(label)) : '?';
+const c = speakerColor(label);
+return `
+<button type="button" class="speaker-chip ${assigned ? '' : 'unassigned'}" onclick="openRenameSpeakerModal('${escapeAttr(label)}')">
+<span class="avatar" style="background:${c.bg};color:${c.fg};">${escapeHtml(initials)}</span>
+<span class="label">${escapeHtml(label)}</span>
+<span class="name">${assigned ? escapeHtml(speakerDisplayName(label)) : 'Assign name ▾'}</span>
+</button>`;
+}).join('');
 }
 
 function initialsOf(name){
-  return name.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+return name.split(/\s+/).filter(Boolean).map(w=>w[0]).slice(0,2).join('').toUpperCase();
 }
 
 function openRenameSpeakerModal(rawLabel){
-  state.renameTargetLabel = rawLabel;
-  document.getElementById('renameSpeakerRawLabel').textContent = `"${rawLabel}"`;
-  document.getElementById('renameSpeakerName').value = state.speakerAliases[rawLabel] || '';
-  openModal('renameSpeakerModalOverlay');
+state.renameTargetLabel = rawLabel;
+document.getElementById('renameSpeakerRawLabel').textContent = `"${rawLabel}"`;
+document.getElementById('renameSpeakerName').value = state.speakerAliases[rawLabel] || '';
+openModal('renameSpeakerModalOverlay');
 }
 
 async function submitRenameSpeaker(){
-  const name = document.getElementById('renameSpeakerName').value.trim();
-  const rawLabel = state.renameTargetLabel;
-  if(!name || !rawLabel || !state.currentEventId) { closeModal('renameSpeakerModalOverlay'); return; }
-  const { error } = await sb.from('speaker_aliases')
-    .upsert({ event_id: state.currentEventId, raw_label: rawLabel, display_name: name }, { onConflict: 'event_id,raw_label' });
-  if(error){ toast('Error saving speaker name'); console.error(error); return; }
-  state.speakerAliases[rawLabel] = name;
-  closeModal('renameSpeakerModalOverlay');
-  toast(`${rawLabel} → ${name}`);
-  // The AI Shortlist panel and Production Pipeline board also show this
-  // speaker's tag (from shortlist_items.speaker_label), so they need to
-  // re-render too, not just the transcript.
-  await Promise.all([loadTranscript(), loadShortlist(), loadPipeline()]);
+const name = document.getElementById('renameSpeakerName').value.trim();
+const rawLabel = state.renameTargetLabel;
+if(!name || !rawLabel || !state.currentEventId) { closeModal('renameSpeakerModalOverlay'); return; }
+const { error } = await sb.from('speaker_aliases')
+.upsert({ event_id: state.currentEventId, raw_label: rawLabel, display_name: name }, { onConflict: 'event_id,raw_label' });
+if(error){ toast('Error saving speaker name'); console.error(error); return; }
+state.speakerAliases[rawLabel] = name;
+closeModal('renameSpeakerModalOverlay');
+toast(`${rawLabel} → ${name}`);
+// The AI Shortlist panel, Production Pipeline board, and Mentions tab all
+// show this speaker's tag/name, so they need to re-render too, not just
+// the transcript.
+await Promise.all([loadTranscript(), loadShortlist(), loadPipeline(), loadMentions()]);
 }
 
 async function loadTranscript(){
-  const box = document.getElementById('transcriptList');
-  if(!state.currentEventId){ box.innerHTML = emptyHtml('📝','No event selected'); document.getElementById('speakerLegend').style.display='none'; return; }
-  const { data, error } = await sb.from('transcript_segments').select('*').eq('event_id', state.currentEventId).order('start_ms');
-  if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load transcript'); return; }
-  state.segments = data || [];
-  document.getElementById('statSegments').textContent = state.segments.length;
-  renderSpeakerLegend(state.segments);
-  if(!state.segments.length){
-    document.getElementById('segCount').textContent = '';
-    box.innerHTML = emptyHtml('🎧','No transcript yet for this event','Run transcribe-audio on a real clip to populate this in real time.');
-    return;
-  }
-  const turns = groupIntoSpeakerTurns(state.segments);
-  state.turns = turns;
-  document.getElementById('segCount').textContent = `${turns.length} speaker turns · ${state.segments.length} raw segments`;
-  box.innerHTML = turns.map((t,i)=>`
-    <div class="seg-row" data-turn-index="${i}" data-speaker="${escapeAttr(t.speaker_label)}" data-start-ms="${t.start_ms}" data-end-ms="${t.end_ms}">
-      <div class="seg-time tabular">${msToClock(t.start_ms)}</div>
-      <div class="seg-speaker">${speakerTagHtml(t.speaker_label)}</div>
-      <div class="seg-text">${escapeHtml(t.text)}</div>
-    </div>`).join('');
+const box = document.getElementById('transcriptList');
+if(!state.currentEventId){ box.innerHTML = emptyHtml('📝','No event selected'); document.getElementById('speakerLegend').style.display='none'; return; }
+const { data, error } = await sb.from('transcript_segments').select('*').eq('event_id', state.currentEventId).order('start_ms');
+if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load transcript'); return; }
+state.segments = data || [];
+document.getElementById('statSegments').textContent = state.segments.length;
+renderSpeakerLegend(state.segments);
+if(!state.segments.length){
+document.getElementById('segCount').textContent = '';
+box.innerHTML = emptyHtml('🎧','No transcript yet for this event','Run transcribe-audio on a real clip to populate this in real time.');
+return;
+}
+const turns = groupIntoSpeakerTurns(state.segments);
+state.turns = turns;
+document.getElementById('segCount').textContent = `${turns.length} speaker turns · ${state.segments.length} raw segments`;
+box.innerHTML = turns.map((t,i)=>`
+<div class="seg-row" data-turn-index="${i}" data-speaker="${escapeAttr(t.speaker_label)}" data-start-ms="${t.start_ms}" data-end-ms="${t.end_ms}">
+<div class="seg-time tabular">${msToClock(t.start_ms)}</div>
+<div class="seg-speaker">${speakerTagHtml(t.speaker_label)}</div>
+<div class="seg-text">${escapeHtml(t.text)}</div>
+</div>`).join('');
 }
 
 // ---------- Select part of a transcript turn to shortlist it manually ----------
 let pendingSelection = null;
 
 function findSegRow(node){
-  const el = node && node.nodeType === 1 ? node : (node ? node.parentElement : null);
-  return el ? el.closest('.seg-row') : null;
+const el = node && node.nodeType === 1 ? node : (node ? node.parentElement : null);
+return el ? el.closest('.seg-row') : null;
 }
 
 // Extract just the spoken text a selection covers, row by row - never the
 // timestamp or speaker-tag markup that sits alongside it in the DOM, which
 // a naive range.toString() would otherwise pull in for a multi-row selection.
 function quoteTextFromSelection(range, rows){
-  return rows.map(row=>{
-    const segText = row.querySelector('.seg-text');
-    if(!segText) return '';
-    const startsHere = segText.contains(range.startContainer);
-    const endsHere = segText.contains(range.endContainer);
-    if(startsHere && endsHere) return range.toString();
-    if(startsHere){
-      const r = document.createRange();
-      r.setStart(range.startContainer, range.startOffset);
-      r.setEnd(segText, segText.childNodes.length);
-      return r.toString();
-    }
-    if(endsHere){
-      const r = document.createRange();
-      r.setStart(segText, 0);
-      r.setEnd(range.endContainer, range.endOffset);
-      return r.toString();
-    }
-    return segText.textContent;
-  }).join(' ').replace(/\s+/g, ' ').trim();
+return rows.map(row=>{
+const segText = row.querySelector('.seg-text');
+if(!segText) return '';
+const startsHere = segText.contains(range.startContainer);
+const endsHere = segText.contains(range.endContainer);
+if(startsHere && endsHere) return range.toString();
+if(startsHere){
+const r = document.createRange();
+r.setStart(range.startContainer, range.startOffset);
+r.setEnd(segText, segText.childNodes.length);
+return r.toString();
+}
+if(endsHere){
+const r = document.createRange();
+r.setStart(segText, 0);
+r.setEnd(range.endContainer, range.endOffset);
+return r.toString();
+}
+return segText.textContent;
+}).join(' ').replace(/\s+/g, ' ').trim();
 }
 
 function initTranscriptSelection(){
-  const box = document.getElementById('transcriptList');
-  box.addEventListener('mouseup', ()=>{
-    setTimeout(()=>{
-      const sel = window.getSelection();
-      const btn = document.getElementById('addToShortlistBtn');
-      if(!sel || sel.isCollapsed || sel.rangeCount === 0){ btn.style.display = 'none'; pendingSelection = null; return; }
-      const range = sel.getRangeAt(0);
-      // A selection can span multiple transcript paragraphs (chunks) - find
-      // the row at each end of the range rather than assuming one row.
-      const startRow = findSegRow(range.startContainer);
-      const endRow = findSegRow(range.endContainer);
-      if(!startRow || !endRow || !box.contains(startRow) || !box.contains(endRow)){ btn.style.display = 'none'; pendingSelection = null; return; }
-      const startIdx = parseInt(startRow.dataset.turnIndex,10);
-      const endIdx = parseInt(endRow.dataset.turnIndex,10);
-      const firstRow = startIdx <= endIdx ? startRow : endRow;
-      const lastRow = startIdx <= endIdx ? endRow : startRow;
-      const lo = Math.min(startIdx, endIdx), hi = Math.max(startIdx, endIdx);
-      const spannedRows = Array.from(box.querySelectorAll('.seg-row')).filter(r=>{
-        const idx = parseInt(r.dataset.turnIndex,10);
-        return idx >= lo && idx <= hi;
-      });
-      const text = quoteTextFromSelection(range, spannedRows);
-      if(!text || text.length < 8){ btn.style.display = 'none'; pendingSelection = null; return; }
-      const labels = [...new Set([firstRow.dataset.speaker, lastRow.dataset.speaker])];
-      const speakerLabel = labels.length === 1 ? labels[0] : null;
-      const rect = range.getBoundingClientRect();
-      pendingSelection = {
-        text,
-        speaker_label: speakerLabel,
-        mixedSpeakers: labels.length > 1 ? labels : null,
-        start_ms: parseInt(firstRow.dataset.startMs,10),
-        end_ms: parseInt(lastRow.dataset.endMs,10),
-        range: range.cloneRange(),
-      };
-      btn.style.top = (rect.top + window.scrollY - 40) + 'px';
-      btn.style.left = (rect.left + window.scrollX) + 'px';
-      btn.style.display = 'inline-flex';
-    }, 0);
-  });
-  document.addEventListener('mousedown', (e)=>{
-    // Don't hide the button for a click that's about to reopen the modal on
-    // the same pending selection (e.g. clicking Cancel then re-clicking Add).
-    if(e.target.id !== 'addToShortlistBtn' && !document.getElementById('manualShortlistModalOverlay').classList.contains('open')){
-      const btn = document.getElementById('addToShortlistBtn');
-      if(btn && !btn.contains(e.target)) btn.style.display = 'none';
-    }
-  });
+const box = document.getElementById('transcriptList');
+box.addEventListener('mouseup', ()=>{
+setTimeout(()=>{
+const sel = window.getSelection();
+const btn = document.getElementById('addToShortlistBtn');
+if(!sel || sel.isCollapsed || sel.rangeCount === 0){ btn.style.display = 'none'; pendingSelection = null; return; }
+const range = sel.getRangeAt(0);
+// A selection can span multiple transcript paragraphs (chunks) - find
+// the row at each end of the range rather than assuming one row.
+const startRow = findSegRow(range.startContainer);
+const endRow = findSegRow(range.endContainer);
+if(!startRow || !endRow || !box.contains(startRow) || !box.contains(endRow)){ btn.style.display = 'none'; pendingSelection = null; return; }
+const startIdx = parseInt(startRow.dataset.turnIndex,10);
+const endIdx = parseInt(endRow.dataset.turnIndex,10);
+const firstRow = startIdx <= endIdx ? startRow : endRow;
+const lastRow = startIdx <= endIdx ? endRow : startRow;
+const lo = Math.min(startIdx, endIdx), hi = Math.max(startIdx, endIdx);
+const spannedRows = Array.from(box.querySelectorAll('.seg-row')).filter(r=>{
+const idx = parseInt(r.dataset.turnIndex,10);
+return idx >= lo && idx <= hi;
+});
+const text = quoteTextFromSelection(range, spannedRows);
+if(!text || text.length < 8){ btn.style.display = 'none'; pendingSelection = null; return; }
+const labels = [...new Set([firstRow.dataset.speaker, lastRow.dataset.speaker])];
+const speakerLabel = labels.length === 1 ? labels[0] : null;
+const rect = range.getBoundingClientRect();
+pendingSelection = {
+text,
+speaker_label: speakerLabel,
+mixedSpeakers: labels.length > 1 ? labels : null,
+start_ms: parseInt(firstRow.dataset.startMs,10),
+end_ms: parseInt(lastRow.dataset.endMs,10),
+range: range.cloneRange(),
+};
+btn.style.top = (rect.top + window.scrollY - 40) + 'px';
+btn.style.left = (rect.left + window.scrollX) + 'px';
+btn.style.display = 'inline-flex';
+}, 0);
+});
+document.addEventListener('mousedown', (e)=>{
+// Don't hide the button for a click that's about to reopen the modal on
+// the same pending selection (e.g. clicking Cancel then re-clicking Add).
+if(e.target.id !== 'addToShortlistBtn' && !document.getElementById('manualShortlistModalOverlay').classList.contains('open')){
+const btn = document.getElementById('addToShortlistBtn');
+if(btn && !btn.contains(e.target)) btn.style.display = 'none';
+}
+});
 }
 
 // Clicking anywhere to open/interact with the modal collapses the browser's
@@ -682,64 +711,64 @@ function initTranscriptSelection(){
 // their highlighted selection back, exactly as they left it, rather than
 // making them re-select it from scratch.
 function restorePendingSelection(){
-  if(!pendingSelection || !pendingSelection.range) return;
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(pendingSelection.range);
-  const rect = pendingSelection.range.getBoundingClientRect();
-  const btn = document.getElementById('addToShortlistBtn');
-  btn.style.top = (rect.top + window.scrollY - 40) + 'px';
-  btn.style.left = (rect.left + window.scrollX) + 'px';
-  btn.style.display = 'inline-flex';
+if(!pendingSelection || !pendingSelection.range) return;
+const sel = window.getSelection();
+sel.removeAllRanges();
+sel.addRange(pendingSelection.range);
+const rect = pendingSelection.range.getBoundingClientRect();
+const btn = document.getElementById('addToShortlistBtn');
+btn.style.top = (rect.top + window.scrollY - 40) + 'px';
+btn.style.left = (rect.left + window.scrollX) + 'px';
+btn.style.display = 'inline-flex';
 }
 
 function cancelManualShortlist(){
-  closeModal('manualShortlistModalOverlay');
-  restorePendingSelection();
+closeModal('manualShortlistModalOverlay');
+restorePendingSelection();
 }
 
 function openManualShortlistModal(){
-  if(!pendingSelection) return;
-  document.getElementById('addToShortlistBtn').style.display = 'none';
-  document.getElementById('manualQuoteText').value = pendingSelection.text;
-  document.getElementById('manualQuoteSpeaker').textContent = pendingSelection.mixedSpeakers
-    ? pendingSelection.mixedSpeakers.map(l=>speakerDisplayName(l)||l).join(' & ')
-    : (speakerDisplayName(pendingSelection.speaker_label) || pendingSelection.speaker_label);
-  document.getElementById('manualQuoteType').value = 'quote';
-  document.getElementById('manualQuoteNotes').value = '';
-  openModal('manualShortlistModalOverlay');
+if(!pendingSelection) return;
+document.getElementById('addToShortlistBtn').style.display = 'none';
+document.getElementById('manualQuoteText').value = pendingSelection.text;
+document.getElementById('manualQuoteSpeaker').textContent = pendingSelection.mixedSpeakers
+? pendingSelection.mixedSpeakers.map(l=>speakerDisplayName(l)||l).join(' & ')
+: (speakerDisplayName(pendingSelection.speaker_label) || pendingSelection.speaker_label);
+document.getElementById('manualQuoteType').value = 'quote';
+document.getElementById('manualQuoteNotes').value = '';
+openModal('manualShortlistModalOverlay');
 }
 
 async function submitManualShortlist(){
-  if(!pendingSelection || !state.currentEventId){ closeModal('manualShortlistModalOverlay'); return; }
-  const quote = document.getElementById('manualQuoteText').value.trim();
-  if(!quote){ toast('Quote text is required'); return; }
-  const content_type = document.getElementById('manualQuoteType').value;
-  const notes = document.getElementById('manualQuoteNotes').value.trim();
-  const speakerLabel = pendingSelection.mixedSpeakers ? pendingSelection.mixedSpeakers.join(' & ') : pendingSelection.speaker_label;
-  const payload = {
-    event_id: state.currentEventId,
-    transcript_segment_id: null,
-    quote,
-    suggested_content_type: content_type,
-    content_type,
-    score: 100,
-    matched_watchlist: [],
-    stage: 'flagged',
-    source_link: null,
-    speaker_label: speakerLabel,
-    start_ms: pendingSelection.start_ms,
-    end_ms: pendingSelection.end_ms,
-    is_manual: true,
-    notes: notes || null,
-  };
-  const { error } = await sb.from('shortlist_items').insert(payload);
-  if(error){ toast('Error adding to shortlist'); console.error(error); return; }
-  closeModal('manualShortlistModalOverlay');
-  pendingSelection = null;
-  window.getSelection().removeAllRanges();
-  toast('Added to shortlist');
-  loadShortlist();
+if(!pendingSelection || !state.currentEventId){ closeModal('manualShortlistModalOverlay'); return; }
+const quote = document.getElementById('manualQuoteText').value.trim();
+if(!quote){ toast('Quote text is required'); return; }
+const content_type = document.getElementById('manualQuoteType').value;
+const notes = document.getElementById('manualQuoteNotes').value.trim();
+const speakerLabel = pendingSelection.mixedSpeakers ? pendingSelection.mixedSpeakers.join(' & ') : pendingSelection.speaker_label;
+const payload = {
+event_id: state.currentEventId,
+transcript_segment_id: null,
+quote,
+suggested_content_type: content_type,
+content_type,
+score: 100,
+matched_watchlist: [],
+stage: 'flagged',
+source_link: null,
+speaker_label: speakerLabel,
+start_ms: pendingSelection.start_ms,
+end_ms: pendingSelection.end_ms,
+is_manual: true,
+notes: notes || null,
+};
+const { error } = await sb.from('shortlist_items').insert(payload);
+if(error){ toast('Error adding to shortlist'); console.error(error); return; }
+closeModal('manualShortlistModalOverlay');
+pendingSelection = null;
+window.getSelection().removeAllRanges();
+toast('Added to shortlist');
+loadShortlist();
 }
 
 // Deepgram returns one row per short "utterance" (breaks on every pause),
@@ -751,307 +780,458 @@ async function submitManualShortlist(){
 // one huge wall of text - a real monologue can run many minutes, so this
 // keeps it broken into scannable chunks without losing the speaker tag.
 function endsCompleteSentence(text){
-  return /[.!?]["'\)\]]?$/.test(text.trim());
+return /[.!?]["'\)\]]?$/.test(text.trim());
 }
 
 function groupIntoSpeakerTurns(segments){
-  const turns = [];
-  const GAP_BREAK_MS = 30000;
-  const MAX_TURN_MS = 60000;
-  const MAX_TURN_CHARS = 700;
-  for(const s of segments){
-    const label = s.speaker_label || 'Unknown';
-    const last = turns[turns.length - 1];
-    const gap = last ? (s.start_ms - last.end_ms) : Infinity;
-    const sameSpeaker = last && last.speaker_label === label && gap < GAP_BREAK_MS;
-    // Only ever break a paragraph once the text so far ends on a real
-    // sentence boundary - otherwise a 60s/700-char break would land
-    // mid-sentence and make it impossible to select a full sentence (or
-    // several) that happens to straddle that cutoff.
-    const overSoftLimit = sameSpeaker && ((s.end_ms - last.start_ms) > MAX_TURN_MS || (last.text.length + s.text.length) > MAX_TURN_CHARS);
-    const canBreakHere = sameSpeaker && overSoftLimit && endsCompleteSentence(last.text);
-    if(sameSpeaker && !canBreakHere){
-      last.text += ' ' + s.text;
-      last.end_ms = s.end_ms;
-      last.segIds.push(s.id);
-    }else{
-      turns.push({ speaker_label: label, start_ms: s.start_ms, end_ms: s.end_ms, text: s.text, segIds:[s.id] });
-    }
-  }
-  return turns;
+const turns = [];
+const GAP_BREAK_MS = 30000;
+const MAX_TURN_MS = 60000;
+const MAX_TURN_CHARS = 700;
+for(const s of segments){
+const label = s.speaker_label || 'Unknown';
+const last = turns[turns.length - 1];
+const gap = last ? (s.start_ms - last.end_ms) : Infinity;
+const sameSpeaker = last && last.speaker_label === label && gap < GAP_BREAK_MS;
+// Only ever break a paragraph once the text so far ends on a real
+// sentence boundary - otherwise a 60s/700-char break would land
+// mid-sentence and make it impossible to select a full sentence (or
+// several) that happens to straddle that cutoff.
+const overSoftLimit = sameSpeaker && ((s.end_ms - last.start_ms) > MAX_TURN_MS || (last.text.length + s.text.length) > MAX_TURN_CHARS);
+const canBreakHere = sameSpeaker && overSoftLimit && endsCompleteSentence(last.text);
+if(sameSpeaker && !canBreakHere){
+last.text += ' ' + s.text;
+last.end_ms = s.end_ms;
+last.segIds.push(s.id);
+}else{
+turns.push({ speaker_label: label, start_ms: s.start_ms, end_ms: s.end_ms, text: s.text, segIds:[s.id] });
+}
+}
+return turns;
 }
 
 async function loadShortlist(){
-  const box = document.getElementById('shortlistList');
-  if(!state.currentEventId){ box.innerHTML = emptyHtml('✨','No event selected'); return; }
-  let query = sb.from('shortlist_items').select('*').eq('event_id', state.currentEventId);
-  const { data, error } = await query;
-  if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load shortlist'); return; }
-  let items = data || [];
-  const sortMode = document.getElementById('sortShortlist').value;
-  if(sortMode==='score') items.sort((a,b)=>(b.score||0)-(a.score||0));
-  else if(sortMode==='recent') items.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
-  else items.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
-  state.shortlist = items;
-  document.getElementById('statShortlist').textContent = items.length;
-  if(!items.length){
-    box.innerHTML = emptyHtml('✨','Shortlist is empty','score-transcript will populate this once a clip is transcribed.');
-    return;
-  }
-  box.innerHTML = items.map(it=>shortlistCardHtml(it)).join('');
+const box = document.getElementById('shortlistList');
+if(!state.currentEventId){ box.innerHTML = emptyHtml('✨','No event selected'); return; }
+let query = sb.from('shortlist_items').select('*').eq('event_id', state.currentEventId);
+const { data, error } = await query;
+if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load shortlist'); return; }
+let items = data || [];
+const sortMode = document.getElementById('sortShortlist').value;
+if(sortMode==='score') items.sort((a,b)=>(b.score||0)-(a.score||0));
+else if(sortMode==='recent') items.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+else items.sort((a,b)=>new Date(a.created_at)-new Date(b.created_at));
+state.shortlist = items;
+document.getElementById('statShortlist').textContent = items.length;
+if(!items.length){
+box.innerHTML = emptyHtml('✨','Shortlist is empty','score-transcript will populate this once a clip is transcribed.');
+return;
+}
+box.innerHTML = items.map(it=>shortlistCardHtml(it)).join('');
 }
 document.getElementById('sortShortlist').addEventListener('change', loadShortlist);
 
 const CONTENT_TYPES = [
-  ['quote','Quote'], ['infographic','Infographic'], ['conceptual_video','Conceptual Video'], ['announcement','Announcement']
+['quote','Quote'], ['infographic','Infographic'], ['conceptual_video','Conceptual Video'], ['announcement','Announcement']
 ];
 function contentTypeLabel(val){
-  const found = CONTENT_TYPES.find(([v])=>v===val);
-  return found ? found[1] : (val || 'Quote');
+const found = CONTENT_TYPES.find(([v])=>v===val);
+return found ? found[1] : (val || 'Quote');
 }
 
 function shortlistCardHtml(it){
-  const type = it.content_type || it.suggested_content_type || 'quote';
-  const speakerLabel = it.speaker_label;
-  return `
-    <div class="kcard">
-      <div class="q">"${escapeHtml(it.quote)}"</div>
-      <div class="meta">
-        <div class="meta-left">
-          ${speakerLabel ? speakerTagHtml(speakerLabel) : ''}
-          <select class="type-select" onchange="updateShortlistType('${it.id}', this.value)">
-            ${CONTENT_TYPES.map(([val,label])=>`<option value="${val}" ${val===type?'selected':''}>${label}</option>`).join('')}
-          </select>
-        </div>
-        <span class="caption tabular">score ${it.score ?? '–'}</span>
-      </div>
-      <textarea class="note-field" placeholder="Add a note for your team..." onblur="updateShortlistNotes('${it.id}', this.value)">${escapeHtml(it.notes||'')}</textarea>
-      <div class="actions">
-        <button class="btn btn-ghost btn-sm" onclick="pushToProduction('${it.id}')">Push to production →</button>
-        <button class="btn btn-ghost btn-sm" onclick="discardShortlistItem('${it.id}')">Discard</button>
-      </div>
-    </div>`;
+const type = it.content_type || it.suggested_content_type || 'quote';
+const speakerLabel = it.speaker_label;
+return `
+<div class="kcard">
+<div class="q">"${escapeHtml(it.quote)}"</div>
+<div class="meta">
+<div class="meta-left">
+${speakerLabel ? speakerTagHtml(speakerLabel) : ''}
+<select class="type-select" onchange="updateShortlistType('${it.id}', this.value)">
+${CONTENT_TYPES.map(([val,label])=>`<option value="${val}" ${val===type?'selected':''}>${label}</option>`).join('')}
+</select>
+</div>
+<span class="caption tabular">score ${it.score ?? '–'}</span>
+</div>
+<textarea class="note-field" placeholder="Add a note for your team..." onblur="updateShortlistNotes('${it.id}', this.value)">${escapeHtml(it.notes||'')}</textarea>
+<div class="actions">
+<button class="btn btn-ghost btn-sm" onclick="pushToProduction('${it.id}')">Push to production →</button>
+<button class="btn btn-ghost btn-sm" onclick="discardShortlistItem('${it.id}')">Discard</button>
+</div>
+</div>`;
 }
 
 async function updateShortlistType(id, content_type){
-  const { error } = await sb.from('shortlist_items').update({ content_type }).eq('id', id);
-  if(error){ toast('Error updating format'); console.error(error); return; }
-  const item = state.shortlist.find(i=>i.id===id);
-  if(item) item.content_type = content_type;
-  toast('Format updated');
+const { error } = await sb.from('shortlist_items').update({ content_type }).eq('id', id);
+if(error){ toast('Error updating format'); console.error(error); return; }
+const item = state.shortlist.find(i=>i.id===id);
+if(item) item.content_type = content_type;
+toast('Format updated');
 }
 
 async function updateShortlistNotes(id, notes){
-  const trimmed = notes.trim();
-  const item = state.shortlist.find(i=>i.id===id);
-  if(item && (item.notes||'') === trimmed) return; // no change, skip the write
-  const { error } = await sb.from('shortlist_items').update({ notes: trimmed || null }).eq('id', id);
-  if(error){ toast('Error saving note'); console.error(error); return; }
-  if(item) item.notes = trimmed;
-  toast('Note saved');
+const trimmed = notes.trim();
+const item = state.shortlist.find(i=>i.id===id);
+if(item && (item.notes||'') === trimmed) return; // no change, skip the write
+const { error } = await sb.from('shortlist_items').update({ notes: trimmed || null }).eq('id', id);
+if(error){ toast('Error saving note'); console.error(error); return; }
+if(item) item.notes = trimmed;
+toast('Note saved');
 }
 
 async function pushToProduction(id){
-  const { error } = await sb.from('shortlist_items').update({ stage: 'in_review' }).eq('id', id);
-  if(error){ toast('Error pushing to production'); console.error(error); return; }
-  toast('Sent to Production Pipeline');
-  loadShortlist();
+const { error } = await sb.from('shortlist_items').update({ stage: 'in_review' }).eq('id', id);
+if(error){ toast('Error pushing to production'); console.error(error); return; }
+toast('Sent to Production Pipeline');
+loadShortlist();
 }
 
 async function discardShortlistItem(id){
-  const { error } = await sb.from('shortlist_items').delete().eq('id', id);
-  if(error){ toast('Error discarding item'); console.error(error); return; }
-  toast('Item discarded');
-  loadShortlist();
+const { error } = await sb.from('shortlist_items').delete().eq('id', id);
+if(error){ toast('Error discarding item'); console.error(error); return; }
+toast('Item discarded');
+loadShortlist();
 }
 
 async function loadSpeakers(){
-  const { data, error } = await sb.from('speakers').select('*').order('created_at');
-  const rows = document.getElementById('speakerRows');
-  const emptyEl = document.getElementById('speakerEmpty');
-  if(error){ console.error(error); rows.innerHTML=''; emptyEl.style.display='block'; return; }
-  state.speakers = data || [];
-  if(!state.speakers.length){ rows.innerHTML=''; emptyEl.style.display='block'; return; }
-  emptyEl.style.display='none';
-  rows.innerHTML = state.speakers.map(s=>`
-    <tr>
-      <td>${escapeHtml(s.name)}</td>
-      <td>${escapeHtml(s.role||'–')}</td>
-      <td>${escapeHtml(s.organization||'–')}</td>
-      <td>${s.is_priority ? '<span class="tag">priority</span>' : '<span class="caption">–</span>'}</td>
-      <td><button class="btn btn-ghost btn-sm" onclick="deleteSpeaker('${s.id}')">Remove</button></td>
-    </tr>`).join('');
+const { data, error } = await sb.from('speakers').select('*').order('created_at');
+const rows = document.getElementById('speakerRows');
+const emptyEl = document.getElementById('speakerEmpty');
+if(error){ console.error(error); rows.innerHTML=''; emptyEl.style.display='block'; return; }
+state.speakers = data || [];
+if(!state.speakers.length){ rows.innerHTML=''; emptyEl.style.display='block'; return; }
+emptyEl.style.display='none';
+rows.innerHTML = state.speakers.map(s=>`
+<tr>
+<td>${escapeHtml(s.name)}</td>
+<td>${escapeHtml(s.role||'–')}</td>
+<td>${escapeHtml(s.organization||'–')}</td>
+<td>${s.is_priority ? '<span class="tag">priority</span>' : '<span class="caption">–</span>'}</td>
+<td><button class="btn btn-ghost btn-sm" onclick="deleteSpeaker('${s.id}')">Remove</button></td>
+</tr>`).join('');
 }
 
 async function submitSpeaker(){
-  const name = document.getElementById('spName').value.trim();
-  if(!name){ toast('Name is required'); return; }
-  const payload = {
-    name,
-    role: document.getElementById('spRole').value.trim() || null,
-    organization: document.getElementById('spOrg').value.trim() || null,
-    is_priority: document.getElementById('spPriority').checked,
-    event_id: state.currentEventId
-  };
-  const { error } = await sb.from('speakers').insert(payload);
-  if(error){ toast('Error adding speaker'); console.error(error); return; }
-  closeModal('speakerModalOverlay');
-  document.getElementById('spName').value=''; document.getElementById('spRole').value=''; document.getElementById('spOrg').value=''; document.getElementById('spPriority').checked=false;
-  toast('Speaker added');
-  loadSpeakers();
+const name = document.getElementById('spName').value.trim();
+if(!name){ toast('Name is required'); return; }
+const payload = {
+name,
+role: document.getElementById('spRole').value.trim() || null,
+organization: document.getElementById('spOrg').value.trim() || null,
+is_priority: document.getElementById('spPriority').checked,
+event_id: state.currentEventId
+};
+const { error } = await sb.from('speakers').insert(payload);
+if(error){ toast('Error adding speaker'); console.error(error); return; }
+closeModal('speakerModalOverlay');
+document.getElementById('spName').value=''; document.getElementById('spRole').value=''; document.getElementById('spOrg').value=''; document.getElementById('spPriority').checked=false;
+toast('Speaker added');
+loadSpeakers();
 }
 
 async function deleteSpeaker(id){
-  const { error } = await sb.from('speakers').delete().eq('id', id);
-  if(error){ toast('Error removing speaker'); return; }
-  toast('Speaker removed');
-  loadSpeakers();
+const { error } = await sb.from('speakers').delete().eq('id', id);
+if(error){ toast('Error removing speaker'); return; }
+toast('Speaker removed');
+loadSpeakers();
 }
 
 async function loadWatchlist(){
-  const { data, error } = await sb.from('watchlist_items').select('*').order('created_at');
-  const box = document.getElementById('watchlistGroups');
-  if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load watchlist'); return; }
-  state.watchlist = data || [];
-  const kinds = ['brand','person','topic'];
-  box.innerHTML = kinds.map(kind=>{
-    const items = state.watchlist.filter(w=>w.kind===kind);
-    return `<div class="card card-pad">
-      <h3 class="heading-sm" style="margin-bottom:12px; text-transform:capitalize;">${kind}s</h3>
-      ${items.length ? items.map(w=>`
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--hairline);">
-          <span class="body-md">${escapeHtml(w.value)}</span>
-          <button class="btn btn-ghost btn-sm" onclick="deleteWatchlist('${w.id}')">✕</button>
-        </div>`).join('') : `<div class="caption">No ${kind}s yet.</div>`}
-    </div>`;
-  }).join('');
+const { data, error } = await sb.from('watchlist_items').select('*').order('created_at');
+const box = document.getElementById('watchlistGroups');
+if(error){ console.error(error); box.innerHTML = emptyHtml('⚠️','Could not load watchlist'); return; }
+state.watchlist = data || [];
+const kinds = ['brand','person','topic'];
+box.innerHTML = kinds.map(kind=>{
+const items = state.watchlist.filter(w=>w.kind===kind);
+return `<div class="card card-pad">
+<h3 class="heading-sm" style="margin-bottom:12px; text-transform:capitalize;">${kind}s</h3>
+${items.length ? items.map(w=>`
+<div style="display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--hairline);">
+<span class="body-md">${escapeHtml(w.value)}</span>
+<button class="btn btn-ghost btn-sm" onclick="deleteWatchlist('${w.id}')">✕</button>
+</div>`).join('') : `<div class="caption">No ${kind}s yet.</div>`}
+</div>`;
+}).join('');
 }
 
 async function submitWatchlist(){
-  const value = document.getElementById('wlValue').value.trim();
-  if(!value){ toast('Value is required'); return; }
-  const payload = { kind: document.getElementById('wlKind').value, value, event_id: state.currentEventId };
-  const { error } = await sb.from('watchlist_items').insert(payload);
-  if(error){ toast('Error adding item'); console.error(error); return; }
-  closeModal('watchlistModalOverlay');
-  document.getElementById('wlValue').value='';
-  toast('Watchlist item added');
-  loadWatchlist();
+const value = document.getElementById('wlValue').value.trim();
+if(!value){ toast('Value is required'); return; }
+const payload = { kind: document.getElementById('wlKind').value, value, event_id: state.currentEventId };
+const { error } = await sb.from('watchlist_items').insert(payload);
+if(error){ toast('Error adding item'); console.error(error); return; }
+closeModal('watchlistModalOverlay');
+document.getElementById('wlValue').value='';
+toast('Watchlist item added');
+loadWatchlist();
+loadMentions();
 }
 
 async function deleteWatchlist(id){
-  const { error } = await sb.from('watchlist_items').delete().eq('id', id);
-  if(error){ toast('Error removing item'); return; }
-  toast('Item removed');
-  loadWatchlist();
+const { error } = await sb.from('watchlist_items').delete().eq('id', id);
+if(error){ toast('Error removing item'); return; }
+toast('Item removed');
+loadWatchlist();
+loadMentions();
 }
 
 async function loadPipeline(){
-  const { data, error } = await sb.from('shortlist_items').select('*').order('updated_at', {ascending:false});
-  const board = document.getElementById('kanbanBoard');
-  if(error){ console.error(error); board.innerHTML = emptyHtml('⚠️','Could not load pipeline'); return; }
-  const stages = [
-    ['flagged','Flagged'], ['in_review','In Review'], ['approved','Approved'],
-    ['in_production','In Production'], ['published','Published']
-  ];
-  const items = data || [];
-  board.innerHTML = stages.map(([key,label])=>{
-    const col = items.filter(it=>it.stage===key);
-    return `<div class="kanban-col">
-      <h4>${label} <span class="tabular">(${col.length})</span></h4>
-      ${col.length ? col.map(it=>`
-        <div class="kcard">
-          <div class="q">"${escapeHtml(it.quote)}"</div>
-          <div class="meta">
-            <div class="meta-left">
-              ${it.speaker_label ? `<span class="tag">${escapeHtml(speakerDisplayName(it.speaker_label))}</span>` : ''}
-              <span class="tag type type-${it.content_type || it.suggested_content_type}">${contentTypeLabel(it.content_type || it.suggested_content_type)}</span>
-            </div>
-            ${key!=='published' ? `<button class="btn btn-ghost btn-sm" onclick="advanceStage('${it.id}','${key}')">Advance →</button>` : ''}
-          </div>
-          ${it.notes ? `<div class="note-field" style="border-style:solid; cursor:default;">${escapeHtml(it.notes)}</div>` : ''}
-        </div>`).join('') : `<div class="caption" style="padding:8px;">Empty</div>`}
-    </div>`;
-  }).join('');
+const { data, error } = await sb.from('shortlist_items').select('*').order('updated_at', {ascending:false});
+const board = document.getElementById('kanbanBoard');
+if(error){ console.error(error); board.innerHTML = emptyHtml('⚠️','Could not load pipeline'); return; }
+const stages = [
+['flagged','Flagged'], ['in_review','In Review'], ['approved','Approved'],
+['in_production','In Production'], ['published','Published']
+];
+const items = data || [];
+board.innerHTML = stages.map(([key,label])=>{
+const col = items.filter(it=>it.stage===key);
+return `<div class="kanban-col">
+<h4>${label} <span class="tabular">(${col.length})</span></h4>
+${col.length ? col.map(it=>`
+<div class="kcard">
+<div class="q">"${escapeHtml(it.quote)}"</div>
+<div class="meta">
+<div class="meta-left">
+${it.speaker_label ? `<span class="tag">${escapeHtml(speakerDisplayName(it.speaker_label))}</span>` : ''}
+<span class="tag type type-${it.content_type || it.suggested_content_type}">${contentTypeLabel(it.content_type || it.suggested_content_type)}</span>
+</div>
+${key!=='published' ? `<button class="btn btn-ghost btn-sm" onclick="advanceStage('${it.id}','${key}')">Advance →</button>` : ''}
+</div>
+${it.notes ? `<div class="note-field" style="border-style:solid; cursor:default;">${escapeHtml(it.notes)}</div>` : ''}
+</div>`).join('') : `<div class="caption" style="padding:8px;">Empty</div>`}
+</div>`;
+}).join('');
 }
 
 async function advanceStage(id, current){
-  const order = ['flagged','in_review','approved','in_production','published'];
-  const next = order[order.indexOf(current)+1];
-  if(!next) return;
-  const { error } = await sb.from('shortlist_items').update({ stage: next }).eq('id', id);
-  if(error){ toast('Error advancing item'); return; }
-  toast('Moved to ' + next.replace('_',' '));
-  loadPipeline();
+const order = ['flagged','in_review','approved','in_production','published'];
+const next = order[order.indexOf(current)+1];
+if(!next) return;
+const { error } = await sb.from('shortlist_items').update({ stage: next }).eq('id', id);
+if(error){ toast('Error advancing item'); return; }
+toast('Moved to ' + next.replace('_',' '));
+loadPipeline();
+}
+
+// ---------- Mentions (watchlist terms scanned across every event) ----------
+// Any event whose transcript is only illustrative placeholder data, not a
+// real transcribed recording, is flagged rather than silently counted
+// alongside the real signal - a dummy 6-10 row transcript would otherwise
+// make small sample data look like genuine mention volume.
+const MENTIONS_SAMPLE_THRESHOLD = 50;
+
+function escapeRegExp(str){
+return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+async function loadMentions(){
+const box = document.getElementById('mentionsList');
+const terms = state.watchlist || [];
+if(!terms.length){
+box.innerHTML = emptyHtml('🔎','No watchlist terms yet','Add terms in the Watchlist tab to start tracking mentions.');
+document.getElementById('mentionsStatTotal').textContent = '0';
+document.getElementById('mentionsStatTerms').textContent = '0';
+document.getElementById('mentionsStatTop').textContent = '–';
+return;
+}
+box.innerHTML = emptyHtml('⏳','Scanning transcripts…');
+
+// Pull every event and every transcript segment across all of them, plus
+// every event's speaker aliases, so mentions can be resolved to real
+// speaker names the same way the rest of the dashboard does.
+const [eventsRes, segsRes, aliasesRes] = await Promise.all([
+sb.from('events').select('*'),
+sb.from('transcript_segments').select('id,event_id,speaker_label,text,start_ms').order('start_ms'),
+sb.from('speaker_aliases').select('*'),
+]);
+if(eventsRes.error || segsRes.error || aliasesRes.error){
+console.error(eventsRes.error || segsRes.error || aliasesRes.error);
+box.innerHTML = emptyHtml('⚠️','Could not scan transcripts for mentions');
+return;
+}
+const events = eventsRes.data || [];
+const segments = segsRes.data || [];
+const aliasesByEvent = {};
+(aliasesRes.data || []).forEach(row=>{
+(aliasesByEvent[row.event_id] ||= {})[row.raw_label] = row.display_name;
+});
+
+const segCountByEvent = {};
+segments.forEach(s=>{ segCountByEvent[s.event_id] = (segCountByEvent[s.event_id]||0) + 1; });
+const eventById = {};
+events.forEach(e=>{ eventById[e.id] = e; });
+const isSampleEvent = (eventId)=> (segCountByEvent[eventId] || 0) < MENTIONS_SAMPLE_THRESHOLD;
+
+const results = terms.map(term=>{
+const re = new RegExp(escapeRegExp(term.value), 'ig');
+const quotes = [];
+const perEvent = {};
+const perSpeaker = {};
+for(const seg of segments){
+re.lastIndex = 0;
+const matches = seg.text ? seg.text.match(re) : null;
+if(!matches || !matches.length) continue;
+const ev = eventById[seg.event_id];
+const evName = ev ? ev.name : 'Unknown event';
+const sample = isSampleEvent(seg.event_id);
+perEvent[seg.event_id] ||= { name: evName, count:0, sample };
+perEvent[seg.event_id].count += matches.length;
+const rawLabel = seg.speaker_label || 'Unknown';
+const displayName = (aliasesByEvent[seg.event_id] || {})[rawLabel] || rawLabel;
+perSpeaker[displayName] = (perSpeaker[displayName] || 0) + matches.length;
+quotes.push({
+event_id: seg.event_id,
+event_name: evName,
+speaker: displayName,
+start_ms: seg.start_ms,
+text: seg.text,
+count: matches.length,
+watch_url: ev && ev.source_url ? ev.source_url : null,
+});
+}
+const total = quotes.reduce((sum,q)=>sum+q.count, 0);
+quotes.sort((a,b)=>a.start_ms-b.start_ms);
+return { term: term.value, kind: term.kind, total, perEvent: Object.values(perEvent), perSpeaker, quotes };
+});
+
+results.sort((a,b)=>b.total-a.total);
+
+const grandTotal = results.reduce((sum,r)=>sum+r.total, 0);
+const topTerm = results.find(r=>r.total>0);
+document.getElementById('mentionsStatTotal').textContent = grandTotal;
+document.getElementById('mentionsStatTerms').textContent = terms.length;
+document.getElementById('mentionsStatTop').textContent = topTerm ? topTerm.term : '–';
+
+if(!grandTotal){
+box.innerHTML = emptyHtml('🔎','No mentions found yet','Terms are tracked, but none have been said in any transcribed content so far.');
+return;
+}
+
+box.innerHTML = results.map((r,i)=>mentionCardHtml(r,i)).join('');
+}
+
+function mentionCardHtml(r, idx){
+const speakerPills = Object.entries(r.perSpeaker)
+.sort((a,b)=>b[1]-a[1])
+.map(([name,count])=>`<span class="mention-pill">${escapeHtml(name)} · ${count}</span>`)
+.join('');
+const eventPills = r.perEvent
+.sort((a,b)=>b.count-a.count)
+.map(e=>`<span class="mention-pill ${e.sample?'sample':''}">${escapeHtml(e.name)} · ${e.count}${e.sample?' (illustrative sample)':''}</span>`)
+.join('');
+const quotesHtml = r.quotes.map(q=>{
+const re = new RegExp(escapeRegExp(r.term), 'ig');
+const highlighted = escapeHtml(q.text).replace(new RegExp(escapeRegExp(escapeHtml(r.term)), 'ig'), m=>`<mark>${m}</mark>`);
+return `
+<div class="mention-quote-row">
+<div class="mention-quote-meta">
+<span class="caption tabular">${msToClock(q.start_ms)}</span>
+<span class="caption">${escapeHtml(q.speaker)}</span>
+<span class="caption">·</span>
+<span class="caption">${escapeHtml(q.event_name)}</span>
+${q.watch_url ? `<a href="${q.watch_url}" target="_blank" rel="noopener" class="caption">Watch →</a>` : ''}
+</div>
+<div class="body-md mention-quote-text">"${highlighted}"</div>
+</div>`;
+}).join('');
+return `
+<div class="card card-pad mention-card">
+<div class="mention-card-head" onclick="toggleMentionQuotes(${idx})">
+<div>
+<div class="mention-term">${escapeHtml(r.term)}</div>
+<div class="caption" style="text-transform:capitalize;">${escapeHtml(r.kind || '')}</div>
+</div>
+<div class="mention-count tabular">${r.total}</div>
+</div>
+<div class="mention-breakdown">${eventPills}${speakerPills}</div>
+${r.quotes.length ? `<div class="mention-toggle" style="margin-top:10px; cursor:pointer;" onclick="toggleMentionQuotes(${idx})" id="mentionToggleLabel-${idx}">Show ${r.quotes.length} quote${r.quotes.length===1?'':'s'} ▾</div>` : ''}
+<div class="mention-quotes" id="mentionQuotes-${idx}">${quotesHtml}</div>
+</div>`;
+}
+
+function toggleMentionQuotes(idx){
+const el = document.getElementById('mentionQuotes-'+idx);
+const label = document.getElementById('mentionToggleLabel-'+idx);
+if(!el) return;
+const open = el.classList.toggle('open');
+if(label){
+const count = el.querySelectorAll('.mention-quote-row').length;
+label.textContent = (open ? 'Hide' : 'Show') + ` ${count} quote${count===1?'':'s'} ` + (open ? '▴' : '▾');
+}
 }
 
 // ---------- Auth ----------
 let currentSession = null;
 
 function renderAuthArea(){
-  const el = document.getElementById('authArea');
-  if(currentSession){
-    el.innerHTML = `<span class="caption" style="margin-right:8px;">${escapeHtml(currentSession.user.email)}</span><button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>`;
-  }else{
-    el.innerHTML = `<button class="btn btn-secondary btn-sm" onclick="openModal('signInModalOverlay')">Sign in</button>`;
-  }
+const el = document.getElementById('authArea');
+if(currentSession){
+el.innerHTML = `<span class="caption" style="margin-right:8px;">${escapeHtml(currentSession.user.email)}</span><button class="btn btn-ghost btn-sm" onclick="signOut()">Sign out</button>`;
+}else{
+el.innerHTML = `<button class="btn btn-secondary btn-sm" onclick="openModal('signInModalOverlay')">Sign in</button>`;
+}
 }
 
 async function submitSignIn(){
-  const email = document.getElementById('authEmail').value.trim();
-  const password = document.getElementById('authPassword').value;
-  const errEl = document.getElementById('authError');
-  errEl.textContent = '';
-  if(!email || !password){ errEl.textContent = 'Email and password are required.'; return; }
-  const { data, error } = await sb.auth.signInWithPassword({ email, password });
-  if(error){ errEl.textContent = error.message; return; }
-  currentSession = data.session;
-  closeModal('signInModalOverlay');
-  document.getElementById('authPassword').value = '';
-  renderAuthArea();
-  toast('Signed in');
+const email = document.getElementById('authEmail').value.trim();
+const password = document.getElementById('authPassword').value;
+const errEl = document.getElementById('authError');
+errEl.textContent = '';
+if(!email || !password){ errEl.textContent = 'Email and password are required.'; return; }
+const { data, error } = await sb.auth.signInWithPassword({ email, password });
+if(error){ errEl.textContent = error.message; return; }
+currentSession = data.session;
+closeModal('signInModalOverlay');
+document.getElementById('authPassword').value = '';
+renderAuthArea();
+toast('Signed in');
 }
 
 async function signOut(){
-  await sb.auth.signOut();
-  currentSession = null;
-  renderAuthArea();
-  toast('Signed out');
+await sb.auth.signOut();
+currentSession = null;
+renderAuthArea();
+toast('Signed out');
 }
-
 
 // ---------- Utils ----------
 function msToClock(ms){
-  if(ms==null) return '--:--';
-  const s = Math.floor(ms/1000); const m = Math.floor(s/60); const r = s%60;
-  return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0');
+if(ms==null) return '--:--';
+const s = Math.floor(ms/1000); const m = Math.floor(s/60); const r = s%60;
+return String(m).padStart(2,'0')+':'+String(r).padStart(2,'0');
 }
 function escapeHtml(str){
-  if(str==null) return '';
-  return str.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+if(str==null) return '';
+return str.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 function escapeAttr(str){
-  if(str==null) return '';
-  // Safe to embed inside:  onclick="fn('VALUE')"
-  // First escape for the JS single-quoted string, then for the HTML double-quoted attribute.
-  return String(str)
-    .replace(/\\/g, '\\\\').replace(/'/g, "\\'")
-    .replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+if(str==null) return '';
+// Safe to embed inside: onclick="fn('VALUE')"
+// First escape for the JS single-quoted string, then for the HTML double-quoted attribute.
+return String(str)
+.replace(/\\/g, '\\\\').replace(/'/g, "\\'")
+.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 }
 function emptyHtml(icon, title, sub){
-  return `<div class="empty"><div class="icon">${icon}</div><div class="body-md">${title}</div>${sub?`<div class="caption">${sub}</div>`:''}</div>`;
+return `<div class="empty"><div class="icon">${icon}</div><div class="body-md">${title}</div>${sub?`<div class="caption">${sub}</div>`:''}</div>`;
 }
 
 // ---------- Init ----------
 async function init(){
-  const { data: { session } } = await sb.auth.getSession();
-  currentSession = session;
-  renderAuthArea();
-  sb.auth.onAuthStateChange((_event, session) => { currentSession = session; renderAuthArea(); });
-  initTranscriptSelection();
-  await loadEvents();
-  await Promise.all([loadSpeakers(), loadWatchlist(), loadPipeline()]);
-  document.getElementById('lastSync').textContent = 'last synced ' + new Date().toLocaleTimeString();
+const { data: { session } } = await sb.auth.getSession();
+currentSession = session;
+renderAuthArea();
+sb.auth.onAuthStateChange((_event, session) => { currentSession = session; renderAuthArea(); });
+initTranscriptSelection();
+await loadEvents();
+await loadSpeakers();
+await loadWatchlist();
+await loadPipeline();
+await loadMentions();
+document.getElementById('lastSync').textContent = 'last synced ' + new Date().toLocaleTimeString();
 }
 init();
 </script>
